@@ -1,5 +1,4 @@
 import { FftSize, BeforeDrawCallback, ModifyBackgroundCallback } from "./types";
-
 export interface AudioVisualizerConfigInterface {
     fps?: number;
     aspectRatio?: {

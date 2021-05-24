@@ -4,19 +4,15 @@ import { OscillopeConfigInterface } from "./OscillopeConfigInterface";
 const DEFAULT_STROKE_WIDTH = 3;
 
 export class Oscillope extends AudioVisualizer {
-    backgroundColor?: string;
-    strokeColor?: string;
     strokeWidth: number;
 
     constructor(
         analyser: AnalyserNode,
         canvas: HTMLCanvasElement,
-        config?: OscillopeConfigInterface
+        config: OscillopeConfigInterface = {}
     ) {
         super(analyser, canvas, config);
 
-        this.backgroundColor = config ? config.backgroundColor : undefined;
-        this.strokeColor = config ? config.strokeColor : undefined;
         if (config) {
             this.strokeWidth = config.strokeWidth ?? DEFAULT_STROKE_WIDTH;
         } else {
@@ -24,31 +20,16 @@ export class Oscillope extends AudioVisualizer {
         }
     }
 
-    protected _setUpDraw() {
+    draw() {
         const canvas = this.canvas;
-        if (!canvas) {
-            console.warn("no canvas");
-            return;
-        }
-        const canvasStyle = window.getComputedStyle(canvas);
-
-        //Get fill and stroke from element
-        const fillStyle =
-            this.backgroundColor ??
-            canvasStyle.getPropertyValue("background-color");
-        const strokeStyle =
-            this.strokeColor ?? canvasStyle.getPropertyValue("color");
-
-        const context = canvas.getContext("2d");
+        const context = this._get2DContext();
 
         if (!context) {
             return;
         }
 
         context.clearRect(0, 0, canvas.width, canvas.height);
-
-        context.fillStyle = fillStyle;
-        context.fillRect(0, 0, canvas.width, canvas.height);
+        this._setBackgroundFillStyle(context);
 
         this.analyser.fftSize = this._fftSize;
         let bufferLength = this.analyser.frequencyBinCount;
@@ -56,6 +37,19 @@ export class Oscillope extends AudioVisualizer {
 
         this.analyser.getByteTimeDomainData(dataArray);
         context.lineWidth = this.strokeWidth;
+
+        const canvasStyle = this._getCanvasStyle();
+
+        //Get fill and stroke from element
+        const strokeStyle = this._getFillStyleFromColor(
+            this.color ?? canvasStyle.getPropertyValue("color"),
+            canvas.width,
+            canvas.height
+        );
+
+        if (!strokeStyle) {
+            return;
+        }
 
         context.strokeStyle = strokeStyle;
 
@@ -76,16 +70,10 @@ export class Oscillope extends AudioVisualizer {
 
             x += sliceWidth;
         }
-    }
-
-    protected _completeDraw() {
-        const context = this.canvas.getContext("2d");
-
-        if (!context) {
-            return;
-        }
 
         context.lineTo(this.canvas.width, this.canvas.height / 2);
+
+        this.beforeDraw(context, canvas, dataArray);
         context.stroke();
     }
 }

@@ -1,6 +1,4 @@
 import { AudioVisualizerConfigInterface } from "./AudioVisualizerConfigInterface";
-
-export interface OscillopeConfigInterface
-    extends AudioVisualizerConfigInterface {
+export interface OscillopeConfigInterface extends AudioVisualizerConfigInterface {
     strokeWidth?: number;
 }
