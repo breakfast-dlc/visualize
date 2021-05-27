@@ -3,6 +3,8 @@ import { OscillopeConfigInterface } from "./OscillopeConfigInterface";
 import { AudioVisualizer } from "./AudioVisualizer";
 import { Oscillope } from "./Oscillope";
 import { FrequencyGraph } from "./FrequencyGraph";
+import { FrequencyGraphBlocks } from "./FrequencyGraphBlocks";
+import { FrequencyCurve } from "./FrequencyCurve";
 
 export {
     AudioVisualizerConfigInterface,
@@ -10,4 +12,6 @@ export {
     AudioVisualizer,
     Oscillope,
     FrequencyGraph,
+    FrequencyGraphBlocks,
+    FrequencyCurve,
 };

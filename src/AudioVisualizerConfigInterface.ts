@@ -1,4 +1,9 @@
-import { FftSize, BeforeDrawCallback, ModifyBackgroundCallback } from "./types";
+import {
+    FftSize,
+    BeforeDrawCallback,
+    ModifyBackgroundCallback,
+    AudioVisualizerFillColor,
+} from "./types";
 
 export interface AudioVisualizerConfigInterface {
     fps?: number;
@@ -6,9 +11,8 @@ export interface AudioVisualizerConfigInterface {
         height: number;
         width: number;
     };
-    fftSize?: FftSize;
-    backgroundColor?: string;
-    color?: string;
+    backgroundColor?: AudioVisualizerFillColor;
+    color?: AudioVisualizerFillColor;
     beforeDraw?: BeforeDrawCallback;
     modifyBackground?: ModifyBackgroundCallback;
 }

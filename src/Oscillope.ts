@@ -4,7 +4,7 @@ import { OscillopeConfigInterface } from "./OscillopeConfigInterface";
 const DEFAULT_STROKE_WIDTH = 3;
 
 export class Oscillope extends AudioVisualizer {
-    strokeWidth: number;
+    lineWidth: number;
 
     constructor(
         analyser: AnalyserNode,
@@ -14,9 +14,9 @@ export class Oscillope extends AudioVisualizer {
         super(analyser, canvas, config);
 
         if (config) {
-            this.strokeWidth = config.strokeWidth ?? DEFAULT_STROKE_WIDTH;
+            this.lineWidth = config.lineWidth ?? DEFAULT_STROKE_WIDTH;
         } else {
-            this.strokeWidth = DEFAULT_STROKE_WIDTH;
+            this.lineWidth = DEFAULT_STROKE_WIDTH;
         }
     }
 
@@ -36,15 +36,20 @@ export class Oscillope extends AudioVisualizer {
         let dataArray = new Uint8Array(bufferLength);
 
         this.analyser.getByteTimeDomainData(dataArray);
-        context.lineWidth = this.strokeWidth;
+        context.lineWidth = this.lineWidth;
 
         const canvasStyle = this._getCanvasStyle();
 
         //Get fill and stroke from element
+        let midpoint = canvas.width / 2;
         const strokeStyle = this._getFillStyleFromColor(
             this.color ?? canvasStyle.getPropertyValue("color"),
-            canvas.width,
-            canvas.height
+            [
+                midpoint,
+                canvas.height / 3,
+                midpoint,
+                canvas.height - canvas.height / 3,
+            ]
         );
 
         if (!strokeStyle) {

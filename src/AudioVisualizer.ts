@@ -21,7 +21,7 @@ const DEFAULT_BACKGROUND_COLOR = "white";
 
 //TODO: Look at auto resizing on the scroll event for when parent div changes width
 
-export class AudioVisualizer {
+export abstract class AudioVisualizer {
     analyser: AnalyserNode;
     canvas: HTMLCanvasElement;
     heightToWidthRatio: number;
@@ -31,11 +31,11 @@ export class AudioVisualizer {
     backgroundColor?: AudioVisualizerFillColor;
     color?: AudioVisualizerFillColor;
     animationIsActive: boolean;
-    _fftSize: FftSize;
-    _throttleTime: number;
-    _canvasStyle?: CSSStyleDeclaration;
-    _beforeDraw: BeforeDrawCallback;
-    _modifyBackground: ModifyBackgroundCallback;
+    protected _fftSize: FftSize;
+    protected _throttleTime: number;
+    protected _canvasStyle?: CSSStyleDeclaration;
+    protected _beforeDraw: BeforeDrawCallback;
+    protected _modifyBackground: ModifyBackgroundCallback;
 
     constructor(
         analyser: AnalyserNode,
@@ -61,7 +61,7 @@ export class AudioVisualizer {
             this.fps = config.fps;
         }
 
-        this._fftSize = config.fftSize ?? DEFAULT_FFT_SIZE;
+        this._fftSize = DEFAULT_FFT_SIZE;
 
         //Initialize callbacks
         const doNothing = (
@@ -92,6 +92,9 @@ export class AudioVisualizer {
         this.reset();
     }
 
+    /**
+     * Resizes the canvas element according to the width of the parent element and the specified aspect ratio
+     */
     resize() {
         const parent = this.canvas.parentElement;
 
@@ -122,6 +125,9 @@ export class AudioVisualizer {
         this.canvas.height = this.height;
     }
 
+    /**
+     * Starts the animation loop for the visualizer
+     */
     start = () => {
         if (!this.animationIsActive) {
             return;
@@ -135,14 +141,21 @@ export class AudioVisualizer {
         }, this._throttleTime);
     };
 
-    draw() {
-        console.error("Draw function has not been implemented");
-    }
+    /**
+     * Renders the visualization on each animation frame. Should be overriden by child classes
+     */
+    abstract draw(): void;
 
+    /**
+     * Stops the animation loop
+     */
     stop() {
         this.animationIsActive = false;
     }
 
+    /**
+     * Stops and then starts the animation loop. Also triggers a resize
+     */
     reset() {
         this.stop();
         setTimeout(() => {
@@ -152,39 +165,47 @@ export class AudioVisualizer {
         }, this._throttleTime * 2);
     }
 
+    /**
+     * Returns the canvas's 2d context
+     */
     protected _get2DContext(): CanvasRenderingContext2D {
         return this.canvas.getContext("2d") as CanvasRenderingContext2D;
     }
 
-    protected _getCanvasStyle = () => {
+    /**
+     * Returns and caches the css style declaration for the canvas element
+     */
+    protected _getCanvasStyle(): CSSStyleDeclaration {
         if (!this._canvasStyle) {
             this._canvasStyle = window.getComputedStyle(this.canvas);
         }
 
         return this._canvasStyle;
-    };
+    }
 
     /**
-     * Clears the saved canvas style
+     * Clears the saved canvas style cache
      */
     private _clearCanvasStyle = () => {
         this._canvasStyle = undefined;
     };
 
+    /**
+     * Returns a new canvas gradient
+     * @param context The canvas's 2d rendering context
+     * @param colorArray Array of colors in the order they will appear in the gradient
+     * @param coordinates Array of x and y coordinates that are used to determine the size and position of the gradient
+     * @returns The canvas gradient
+     */
     protected _createGradient(
         context: CanvasRenderingContext2D,
         colorArray: string[],
-        width: number,
-        height: number
+        coordinates: [number, number, number, number]
     ): CanvasGradient {
+        const [x1, y1, x2, y2] = coordinates;
+
         //Create gradient
-        let midpoint = width / 2;
-        let gradient = context.createLinearGradient(
-            midpoint,
-            0,
-            midpoint,
-            height
-        );
+        let gradient = context.createLinearGradient(x1, y1, x2, y2);
 
         let colors = [...colorArray];
 
@@ -193,6 +214,7 @@ export class AudioVisualizer {
 
         gradient.addColorStop(0, firstColor);
 
+        //If more than 2 colors, divide space equally between all colors
         if (colors.length > 0) {
             let offsetIncrement = 1 / (colors.length + 1);
             let offset = offsetIncrement;
@@ -208,10 +230,15 @@ export class AudioVisualizer {
         return gradient;
     }
 
+    /**
+     * Returns fills
+     * @param color
+     * @param coordinates
+     * @returns
+     */
     protected _getFillStyleFromColor(
         color: AudioVisualizerFillColor,
-        width: number,
-        height: number
+        coordinates: [number, number, number, number]
     ): CanvasGradient | string | null {
         if (Array.isArray(color) && color.length > 1) {
             if (color.length > 1) {
@@ -219,7 +246,7 @@ export class AudioVisualizer {
                 if (!context) {
                     return null;
                 }
-                return this._createGradient(context, color, width, height);
+                return this._createGradient(context, color, coordinates);
             } else {
                 return color[0];
             }
@@ -228,6 +255,10 @@ export class AudioVisualizer {
         }
     }
 
+    /**
+     * Fills in the visualizer background
+     * @param context The canvas's 2d rendering context
+     */
     protected _setBackgroundFillStyle(context: CanvasRenderingContext2D) {
         const width = this.canvas.width;
         const height = this.canvas.height;
@@ -243,19 +274,17 @@ export class AudioVisualizer {
                 : DEFAULT_BACKGROUND_COLOR;
         }
 
-        if (Array.isArray(backgroundColor)) {
-            //Create gradient
-            let gradient = this._createGradient(
-                context,
-                backgroundColor,
-                width,
-                height
-            );
-            context.fillStyle = gradient;
-        } else {
-            //Solid background
-            context.fillStyle = backgroundColor;
-        }
+        let midpoint = width / 2;
+
+        let fillStyle =
+            this._getFillStyleFromColor(backgroundColor, [
+                midpoint,
+                0,
+                midpoint,
+                height,
+            ]) ?? DEFAULT_BACKGROUND_COLOR;
+
+        context.fillStyle = fillStyle;
 
         //User callback for modifying background
         this.modifyBackground(context, this.canvas);
@@ -263,7 +292,9 @@ export class AudioVisualizer {
         context.fillRect(0, 0, width, height);
     }
 
-    //Getters and Setters
+    /*
+     * Getters and Setters
+     */
 
     set fps(fps: number) {
         if (!fps) {
@@ -279,14 +310,6 @@ export class AudioVisualizer {
 
     get fftSize(): FftSize {
         return this._fftSize;
-    }
-
-    set fftSize(size: FftSize) {
-        if (!size) {
-            return;
-        }
-
-        this._fftSize = size;
     }
 
     get beforeDraw(): BeforeDrawCallback {

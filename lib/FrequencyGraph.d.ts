@@ -1,23 +1,25 @@
 import { AudioVisualizer } from "./AudioVisualizer";
 import { AudioVisualizerConfigInterface } from "./AudioVisualizerConfigInterface";
-import { FrequencyGraphFillType } from "./types";
 declare type FrequencyGraphType = "simple-bar-graph" | "block-bar-graph" | "frequency-curve";
 export interface FrequencyGraphConfig extends AudioVisualizerConfigInterface {
-    numBars?: number;
-    type?: FrequencyGraphType;
-    fillType?: FrequencyGraphFillType;
+    numColumns?: number;
 }
 export declare class FrequencyGraph extends AudioVisualizer {
     static SIMPLE_BAR_GRAPH: FrequencyGraphType;
     static BLOCK_BAR_GRAPH: FrequencyGraphType;
     static FREQUENCY_CURVE: FrequencyGraphType;
-    numBars: number;
-    private _type;
+    static _DEFAULT_NUM_BARS: number;
+    numColumns: number;
     constructor(analyser: AnalyserNode, canvas: HTMLCanvasElement, config?: FrequencyGraphConfig);
     protected _getFrequencyAverages(): Array<number>;
-    drawBarGraph(): void;
-    drawBarGraphBlocks: () => void;
-    get type(): FrequencyGraphType;
-    set type(value: FrequencyGraphType);
+    draw(): void;
+    /**
+     *
+     * @param x The x position to start drawing the bar
+     * @param y The y position to start drawing the bar. Will be equal to height of the bar
+     * @param barWidth The width of the bar
+     * @returns
+     */
+    protected _fillFrequencyBar(x: number, y: number, barWidth: number): null | undefined;
 }
 export {};
