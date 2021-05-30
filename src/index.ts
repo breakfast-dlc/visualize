@@ -1,5 +1,4 @@
-export * from "./AudioVisualizer";
-export * from "./Oscillope";
-export * from "./FrequencyGraph";
-export * from "./FrequencyGraphBlocks";
-export * from "./FrequencyCurve";
+export { Oscillope } from "./Oscillope";
+export { FrequencyGraph } from "./FrequencyGraph";
+export { FrequencyGraphBlocks } from "./FrequencyGraphBlocks";
+export { FrequencyCurve } from "./FrequencyCurve";

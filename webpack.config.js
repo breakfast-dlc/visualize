@@ -18,7 +18,7 @@ module.exports = [
             extensions: [".tsx", ".ts", ".js"],
         },
         output: {
-            filename: "bdlc-visualize.umd.js",
+            filename: "index.js",
             path: path.resolve(__dirname, "dist"),
             library: {
                 name: "BDLCV",
