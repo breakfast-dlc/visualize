@@ -1,12 +1,11 @@
 {
     "name": "bdlc-visualize",
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "Audio Visualizer library for browser based on the Web Audio API",
     "main": "dist/bdlc-visualize.umd.js",
     "types": "dist/index.d.ts",
     "files": [
-        "/dist",
-        "/lib"
+        "/dist"
     ],
     "devDependencies": {
         "ts-loader": "^9.1.2",
