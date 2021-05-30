@@ -1,5 +1,5 @@
 {
-    "name": "bdlc-visualize",
+    "name": "@breakfast-dlc/visualize",
     "version": "0.0.1",
     "description": "Audio Visualizer library for browser based on the Web Audio API",
     "main": "dist/index.js",
