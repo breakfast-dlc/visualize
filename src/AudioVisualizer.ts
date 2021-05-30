@@ -1,61 +1,172 @@
-import { AudioVisualizerConfigInterface } from "./AudioVisualizerConfigInterface";
-import {
-    FftSize,
-    BeforeDrawCallback,
-    AudioVisualizerFillColor,
-    ModifyBackgroundCallback,
-} from "./types";
+/**
+ * Valid fft size values for an AnalyserNode
+ */
+export type FftSize =
+    | 16
+    | 32
+    | 64
+    | 128
+    | 256
+    | 512
+    | 1024
+    | 2048
+    | 4096
+    | 8192
+    | 16384
+    | 32768;
+
+/**
+ * The value that the AudioVisualizer's color or backgroundColor can be set to
+ */
+export type AudioVisualizerFillColor = string | string[];
+
+/**
+ * A callback that can be used to modify the canvas / context while rendering the visual
+ */
+export type AudioVisualizerCallback = (
+    context: CanvasRenderingContext2D | WebGL2RenderingContext,
+    canvas?: HTMLCanvasElement,
+    data?: any
+) => void;
+
+/**
+ * An index of all callbacks that have been passed to the visualizer
+ */
+export interface AudioVisualizerCallbackIndex {
+    [key: string]: {
+        [key: string]: AudioVisualizerCallback;
+    };
+}
+
+/**
+ * Defines a configuration that can be passed to an AudioVisualizer when it is first created
+ */
+export interface AudioVisualizerConfig {
+    /**
+     * (Optional) The frames per second that the visualition should run at. A high fps will result in a smoother
+     * animation, but uses more resources. By default, the AudioVisualizer will use the highest possible fps, which
+     * is typically around 60 fps
+     */
+    fps?: number;
+
+    /**
+     * (Optional) The aspect ratio to use when sizing the canvas. Defaults to a wide screen ratio (16:9)
+     */
+    aspectRatio?: {
+        width: number;
+        height: number;
+    };
+
+    /**
+     * (Optional) The background color to use for the visualization. Can be a string or an array. If an array is passed,
+     * the background will be set to a gradient with the first color at the top of the canvas and last color at the bottom.
+     * Defaults to the background color of the canvas element
+     */
+    backgroundColor?: AudioVisualizerFillColor;
+
+    /**
+     * (Optional) The foreground color to use for the visualization. Can be a string or an array. If an array is passed,
+     * the color will be a gradient with the first color at the top of the canvas and last color at the bottom.
+     * Defaults to the color of the canvas element
+     */
+    color?: AudioVisualizerFillColor;
+}
 
 const DPI: number = window.devicePixelRatio;
-const DEFAULT_WIDTH_TO_HEIGHT_RATIO: number = 9 / 16; //Wide screen ratio
-const DEFAULT_HEIGHT_TO_WIDTH_RATIO: number = 16 / 9; //Wide screen ratio
+
+const DEFAULT_ASPECT_RATIO = {
+    height: 9,
+    width: 16,
+};
+
 const MAX_FRAMES_PER_SECOND: number = 60;
+
 const MILLISECONDS_PER_SECOND: number = 1000;
-const DEFAULT_THROTTLE_TIME: number =
+
+const MIN_THROTTLE_TIME: number =
     MILLISECONDS_PER_SECOND / MAX_FRAMES_PER_SECOND;
 
 const DEFAULT_FFT_SIZE: FftSize = 2048;
 
-//Canvas Constants
 const DEFAULT_BACKGROUND_COLOR = "white";
 
-//TODO: Look at auto resizing on the scroll event for when parent div changes width
-
+/**
+ * Base AudioVisualizer class
+ */
 export abstract class AudioVisualizer {
+    /**
+     * The analyser node from which the visualizer will get data about the audio
+     */
     analyser: AnalyserNode;
-    canvas: HTMLCanvasElement;
-    heightToWidthRatio: number;
-    widthToHeightRatio: number;
-    width?: number;
-    height?: number;
-    backgroundColor?: AudioVisualizerFillColor;
-    color?: AudioVisualizerFillColor;
-    animationIsActive: boolean;
-    protected _fftSize: FftSize;
-    protected _throttleTime: number;
-    protected _canvasStyle?: CSSStyleDeclaration;
-    protected _beforeDraw: BeforeDrawCallback;
-    protected _modifyBackground: ModifyBackgroundCallback;
 
+    /**
+     * The canvas element the visualizer will use to display the visual
+     */
+    canvas: HTMLCanvasElement;
+
+    /**
+     * Aspect ratio for the visualizer
+     */
+    aspectRatio: {
+        height: number;
+        width: number;
+    };
+
+    /**
+     * The background color to use for the visual. Can be set to an array,
+     * in which case the background color will be set to an array
+     */
+    backgroundColor?: AudioVisualizerFillColor;
+
+    /**
+     * The foreground color to use for the visual. Can be set to an array
+     */
+    color?: AudioVisualizerFillColor;
+
+    /**
+     * Whether or not the animation is currently active
+     */
+    protected _animationIsActive: boolean;
+
+    /**
+     * The fft size to use for the visualizer
+     */
+    protected _fftSize: FftSize;
+
+    /**
+     * The throttle time to use when controlling fps
+     */
+    protected _throttleTime?: number;
+
+    /**
+     * A cache for the calculated canvas style
+     */
+    protected _canvasStyleCache?: CSSStyleDeclaration;
+
+    /**
+     * An object containing callbacks organized by event type
+     */
+    protected _callbacks: AudioVisualizerCallbackIndex;
+
+    /**
+     *
+     * @param analyser An AnalyserNode that is connected to the audio source that will be visualized
+     * @param canvas A canvas element that the visualization will be rendered in
+     * @param config (Optional) An object that describes how the AudioVisualizer should be configured
+     */
     constructor(
         analyser: AnalyserNode,
         canvas: HTMLCanvasElement,
-        config: AudioVisualizerConfigInterface = {}
+        config: AudioVisualizerConfig = {}
     ) {
         if (config.aspectRatio) {
-            this.widthToHeightRatio =
-                config.aspectRatio.height / config.aspectRatio.width;
-            this.heightToWidthRatio =
-                config.aspectRatio.width / config.aspectRatio.height;
+            this.aspectRatio = config.aspectRatio;
         } else {
-            this.widthToHeightRatio = DEFAULT_WIDTH_TO_HEIGHT_RATIO;
-            this.heightToWidthRatio = DEFAULT_HEIGHT_TO_WIDTH_RATIO;
+            this.aspectRatio = DEFAULT_ASPECT_RATIO;
         }
 
         this.backgroundColor = config.backgroundColor;
         this.color = config.color;
-
-        this._throttleTime = DEFAULT_THROTTLE_TIME;
 
         if (config.fps) {
             this.fps = config.fps;
@@ -63,18 +174,8 @@ export abstract class AudioVisualizer {
 
         this._fftSize = DEFAULT_FFT_SIZE;
 
-        //Initialize callbacks
-        const doNothing = (
-            context: CanvasRenderingContext2D | WebGL2RenderingContext
-        ) => {
-            /*Do Nothing*/
-        };
-        this._beforeDraw = config.beforeDraw ?? doNothing;
-
-        this._modifyBackground = config.modifyBackground ?? doNothing;
-
         //Initalize animation state
-        this.animationIsActive = true;
+        this._animationIsActive = true;
 
         if (!analyser) {
             console.error("Error: analyser is null or undefined");
@@ -87,6 +188,9 @@ export abstract class AudioVisualizer {
         }
 
         this.canvas = canvas;
+        this._callbacks = {
+            onSetUpForeground: {},
+        };
 
         //Resize
         this.reset();
@@ -105,52 +209,54 @@ export abstract class AudioVisualizer {
         const maxHeight = parent.clientHeight;
         const maxWidth = parent.clientWidth;
 
+        let heightToWidthRatio =
+            this.aspectRatio.width / this.aspectRatio.height;
+        let widthToHeightRatio =
+            this.aspectRatio.height / this.aspectRatio.width;
+
         //Check width
         let newWidth;
         let newHeight;
-        if (maxWidth * this.widthToHeightRatio > maxHeight) {
+        if (maxWidth * widthToHeightRatio > maxHeight) {
             //Fit to height
-            newWidth = maxHeight * this.heightToWidthRatio * DPI;
+            newWidth = maxHeight * heightToWidthRatio * DPI;
             newHeight = maxHeight * DPI;
         } else {
             //Fit to width
             newWidth = maxWidth * DPI;
-            newHeight = maxWidth * this.widthToHeightRatio * DPI;
+            newHeight = maxWidth * widthToHeightRatio * DPI;
         }
 
         //Update Canvas
-        this.width = newWidth;
-        this.height = newHeight;
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
+        this.canvas.width = newWidth;
+        this.canvas.height = newHeight;
     }
 
     /**
      * Starts the animation loop for the visualizer
      */
     start = () => {
-        if (!this.animationIsActive) {
+        if (!this._animationIsActive) {
             return;
         }
 
-        this.draw();
+        this._draw();
         this._clearCanvasStyle();
 
-        setTimeout(() => {
+        if (this._throttleTime && this._throttleTime >= MIN_THROTTLE_TIME) {
+            setTimeout(() => {
+                requestAnimationFrame(this.start);
+            }, this._throttleTime);
+        } else {
             requestAnimationFrame(this.start);
-        }, this._throttleTime);
+        }
     };
-
-    /**
-     * Renders the visualization on each animation frame. Should be overriden by child classes
-     */
-    abstract draw(): void;
 
     /**
      * Stops the animation loop
      */
     stop() {
-        this.animationIsActive = false;
+        this._animationIsActive = false;
     }
 
     /**
@@ -159,11 +265,50 @@ export abstract class AudioVisualizer {
     reset() {
         this.stop();
         setTimeout(() => {
-            this.animationIsActive = true;
+            this._animationIsActive = true;
             requestAnimationFrame(this.start);
             this.resize();
-        }, this._throttleTime * 2);
+        }, (this._throttleTime ?? MIN_THROTTLE_TIME) * 2);
     }
+
+    /**
+     * Adds a callback for a specific event
+     * @param eventName The tag of the event to attach the callback to
+     * @param callback The callback to be called on the event
+     */
+    on(eventName: string, callback: AudioVisualizerCallback) {
+        if (!eventName) {
+            console.warn("Failed to add callback: event name is undefined");
+            return;
+        }
+
+        if (typeof callback !== "function") {
+            console.warn(
+                "Failed to add callback: Invalid callback. Callback must be a function."
+            );
+            return;
+        }
+
+        if (typeof this._callbacks[eventName] === "undefined") {
+            console.warn(
+                `Failed to add callback: Invalid tag. This visualizer does not support the event ${eventName}`
+            );
+            return;
+        }
+
+        //Determine index
+        let index: string | number = callback.name;
+        if (index === "" || index === "anonymous") {
+            index = Object.keys(this._callbacks[eventName]).length;
+        }
+
+        this._callbacks[eventName][index] = callback;
+    }
+
+    /**
+     * Renders the visualization on each animation frame.
+     */
+    protected abstract _draw(): void;
 
     /**
      * Returns the canvas's 2d context
@@ -176,18 +321,18 @@ export abstract class AudioVisualizer {
      * Returns and caches the css style declaration for the canvas element
      */
     protected _getCanvasStyle(): CSSStyleDeclaration {
-        if (!this._canvasStyle) {
-            this._canvasStyle = window.getComputedStyle(this.canvas);
+        if (!this._canvasStyleCache) {
+            this._canvasStyleCache = window.getComputedStyle(this.canvas);
         }
 
-        return this._canvasStyle;
+        return this._canvasStyleCache;
     }
 
     /**
      * Clears the saved canvas style cache
      */
     private _clearCanvasStyle = () => {
-        this._canvasStyle = undefined;
+        this._canvasStyleCache = undefined;
     };
 
     /**
@@ -286,16 +431,28 @@ export abstract class AudioVisualizer {
 
         context.fillStyle = fillStyle;
 
-        //User callback for modifying background
-        this.modifyBackground(context, this.canvas);
-
         context.fillRect(0, 0, width, height);
     }
 
-    /*
-     * Getters and Setters
+    /**
+     * Passes the given context to all the callbacks for the onSetUpForeground event
+     * @param context The canvas context that will be passed to the callbacks
      */
+    protected _applyForegroundFilters(
+        context: CanvasRenderingContext2D
+    ): CanvasRenderingContext2D {
+        const callbacks = Object.values(this._callbacks.onSetUpForeground);
 
+        for (let callback of callbacks) {
+            callback(context);
+        }
+
+        return context;
+    }
+
+    /**
+     * Sets the frames per second for the
+     */
     set fps(fps: number) {
         if (!fps) {
             return;
@@ -308,27 +465,10 @@ export abstract class AudioVisualizer {
         this._throttleTime = MILLISECONDS_PER_SECOND / fps;
     }
 
+    /**
+     * Returns the visualizer fft size
+     */
     get fftSize(): FftSize {
         return this._fftSize;
-    }
-
-    get beforeDraw(): BeforeDrawCallback {
-        return this._beforeDraw;
-    }
-
-    set beforeDraw(beforeDraw: BeforeDrawCallback) {
-        if (beforeDraw) {
-            this._beforeDraw = beforeDraw;
-        }
-    }
-
-    get modifyBackground(): ModifyBackgroundCallback {
-        return this._modifyBackground;
-    }
-
-    set modifyBackground(callback: ModifyBackgroundCallback) {
-        if (callback) {
-            this._modifyBackground = callback;
-        }
     }
 }

@@ -1,4 +1,13 @@
 {
+    "name": "bdlc-visualize",
+    "version": "0.0.0",
+    "description": "Audio Visualizer library for browser based on the Web Audio API",
+    "main": "dist/bdlc-visualize.umd.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "/dist",
+        "/lib"
+    ],
     "devDependencies": {
         "ts-loader": "^9.1.2",
         "typescript": "^4.2.4",
@@ -6,7 +15,7 @@
         "webpack-cli": "^4.7.0"
     },
     "scripts": {
-        "start": "webpack --mode development --watch",
+        "start": "node scripts/start.js",
         "build": "webpack --mode production"
     }
 }

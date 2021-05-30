@@ -1,14 +1,25 @@
 import { FrequencyGraph, FrequencyGraphConfig } from "./FrequencyGraph";
 import { frequencyDataToDecibel } from "./helpers";
 
-const DEFAULT_NUM_ROWS = 32;
+const DEFAULT_ROW_COUNT = 32;
 
+/**
+ * Defines a configuration that can be passed to a FrequencyGraphBlocks when it is first created
+ */
 interface FrequencyGraphBlocksConfig extends FrequencyGraphConfig {
-    numRows?: number;
+    /**
+     * (Optional) The number of rows to use in the visualization. In other words, the
+     * number of blocks each column will be split into. Defaults to 32
+     */
+    rowCount?: number;
 }
 
 export class FrequencyGraphBlocks extends FrequencyGraph {
-    numRows?: number;
+    /**
+     * The number of rows to use in the visualization. In other words, the
+     * number of blocks each column will be split into
+     */
+    rowCount?: number;
 
     constructor(
         analyser: AnalyserNode,
@@ -16,10 +27,13 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
         config: FrequencyGraphBlocksConfig = {}
     ) {
         super(analyser, canvas, config);
-        this.numRows = config.numRows;
+        this.rowCount = config.rowCount;
     }
 
-    draw() {
+    /**
+     * @see AudioVisualizer
+     */
+    _draw() {
         if (!this.canvas) {
             return;
         }
@@ -30,7 +44,7 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
         }
 
         const numBars =
-            this.numColumns ?? FrequencyGraphBlocks._DEFAULT_NUM_BARS;
+            this.columnCount ?? FrequencyGraphBlocks._DEFAULT_COLUMN_COUNT;
         const canvasWidth = this.canvas.width;
         const canvasHeight = this.canvas.height;
         let gapSize = 4;
@@ -48,7 +62,7 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
 
         for (let averageValue of this._getFrequencyAverages()) {
             let heightProportion = frequencyDataToDecibel(averageValue) * -1;
-            let numRows = this.numRows ?? DEFAULT_NUM_ROWS;
+            let numRows = this.columnCount ?? DEFAULT_ROW_COUNT;
             let blockHeight = (canvasHeight - numRows * gapSize) / numRows;
 
             let heightRemaining =
@@ -75,7 +89,7 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
                     context.fillStyle = barColor;
                 }
 
-                this.beforeDraw(context, this.canvas);
+                this._applyForegroundFilters(context);
                 context.fillRect(x, y, barWidth, blockHeight);
                 y = y - blockHeight - gapSize;
                 heightRemaining = heightRemaining - blockHeight - gapSize;

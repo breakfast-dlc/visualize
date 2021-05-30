@@ -1,35 +1,39 @@
-import { AudioVisualizer } from "./AudioVisualizer";
-import { AudioVisualizerConfigInterface } from "./AudioVisualizerConfigInterface";
+import {
+    AudioVisualizer,
+    AudioVisualizerConfig,
+    AudioVisualizerFillColor,
+} from "./AudioVisualizer";
 import {
     average,
     CANVAS_PADDING_TOP,
     frequencyDataToDecibel,
     getSteps,
     MAX_FREQUENCY,
-    MAX_FREQUENCY_DATA_VALUE,
     stepsToFrequency,
 } from "./helpers";
-import { AudioVisualizerFillColor } from "./types";
 
-const DEFAULT_SIZE = 32;
+const DEFAULT_COLUMN_COUNT = 32;
 const DEFAULT_COLOR = "black";
 
-type FrequencyGraphType =
-    | "simple-bar-graph"
-    | "block-bar-graph"
-    | "frequency-curve";
-
-export interface FrequencyGraphConfig extends AudioVisualizerConfigInterface {
-    numColumns?: number;
+/**
+ * Defines a configuration that can be passed to a FrequencyGraph when it is first created
+ */
+export interface FrequencyGraphConfig extends AudioVisualizerConfig {
+    /**
+     * (Optional) The number of columns or bars to use in the visualization. Each bar will represent a
+     * different part of the frequency range. Defaults to 32
+     */
+    columnCount?: number;
 }
 
 export class FrequencyGraph extends AudioVisualizer {
-    static SIMPLE_BAR_GRAPH: FrequencyGraphType = "simple-bar-graph";
-    static BLOCK_BAR_GRAPH: FrequencyGraphType = "block-bar-graph";
-    static FREQUENCY_CURVE: FrequencyGraphType = "frequency-curve";
-    static _DEFAULT_NUM_BARS = DEFAULT_SIZE;
+    static _DEFAULT_COLUMN_COUNT = DEFAULT_COLUMN_COUNT;
 
-    numColumns: number;
+    /**
+     * The number of columns or bars to use in the visualization. Each bar represents
+     * different part of the frequency range
+     */
+    columnCount: number;
 
     constructor(
         analyser: AnalyserNode,
@@ -38,16 +42,21 @@ export class FrequencyGraph extends AudioVisualizer {
     ) {
         super(analyser, canvas, config);
 
-        this.numColumns = config.numColumns ?? DEFAULT_SIZE;
+        this.columnCount = config.columnCount ?? DEFAULT_COLUMN_COUNT;
         this._fftSize = 16384;
     }
 
-    protected _getFrequencyAverages(): Array<number> {
+    /**
+     * Returns an array of the average value of each frequency band. The number of frequency bands is equal to columnCount.
+     * The frequency averages are sorted from lower frequencies to higher frequencies
+     * @returns {number[]}
+     */
+    protected _getFrequencyAverages(): number[] {
         const frequencyAverages = [];
         const bufferLength = this.analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
         const totalSteps = getSteps(MAX_FREQUENCY);
-        const numBars = this.numColumns ?? DEFAULT_SIZE;
+        const numBars = this.columnCount ?? DEFAULT_COLUMN_COUNT;
         const barIncrement = totalSteps / numBars;
         const frequencyChunkSize = MAX_FREQUENCY / bufferLength;
 
@@ -81,7 +90,10 @@ export class FrequencyGraph extends AudioVisualizer {
         return frequencyAverages;
     }
 
-    draw() {
+    /**
+     * @see AudioVisualizer
+     */
+    _draw() {
         if (!this.canvas) {
             return;
         }
@@ -92,7 +104,7 @@ export class FrequencyGraph extends AudioVisualizer {
             return;
         }
 
-        const numBars = this.numColumns ?? DEFAULT_SIZE;
+        const numBars = this.columnCount ?? DEFAULT_COLUMN_COUNT;
         const canvasWidth = this.canvas.width;
         const canvasHeight = this.canvas.height;
         const gap = 2;
@@ -135,7 +147,7 @@ export class FrequencyGraph extends AudioVisualizer {
         for (let averageValue of this._getFrequencyAverages()) {
             let heightProportion = frequencyDataToDecibel(averageValue) * -1;
             barHeight = heightProportion * canvasHeight;
-            this.beforeDraw(context, this.canvas);
+            this._applyForegroundFilters(context);
             this._fillFrequencyBar(x, barHeight, barWidth);
             x += barWidth + gap; // Gives space between each bar
         }

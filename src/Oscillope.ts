@@ -1,15 +1,30 @@
-import { AudioVisualizer } from "./AudioVisualizer";
-import { OscillopeConfigInterface } from "./OscillopeConfigInterface";
+import { AudioVisualizer, AudioVisualizerConfig } from "./AudioVisualizer";
 
 const DEFAULT_STROKE_WIDTH = 3;
 
+/**
+ * Defines a configuration that can be passed to an Oscillope when it is first created
+ */
+export interface OscillopeConfig extends AudioVisualizerConfig {
+    /**
+     * (Optional) The width of the Oscillope's line. Defaults to 3.
+     */
+    lineWidth?: number;
+}
+
+/**
+ * Generates an Oscillope visualization
+ */
 export class Oscillope extends AudioVisualizer {
+    /**
+     * The width of the Oscillope's line
+     */
     lineWidth: number;
 
     constructor(
         analyser: AnalyserNode,
         canvas: HTMLCanvasElement,
-        config: OscillopeConfigInterface = {}
+        config: OscillopeConfig = {}
     ) {
         super(analyser, canvas, config);
 
@@ -18,9 +33,14 @@ export class Oscillope extends AudioVisualizer {
         } else {
             this.lineWidth = DEFAULT_STROKE_WIDTH;
         }
+
+        this._fftSize = 4096;
     }
 
-    draw() {
+    /**
+     * @see AudioVisualizer
+     */
+    _draw() {
         const canvas = this.canvas;
         const context = this._get2DContext();
 
@@ -31,7 +51,7 @@ export class Oscillope extends AudioVisualizer {
         context.clearRect(0, 0, canvas.width, canvas.height);
         this._setBackgroundFillStyle(context);
 
-        this.analyser.fftSize = this._fftSize;
+        this.analyser.fftSize = this.fftSize;
         let bufferLength = this.analyser.frequencyBinCount;
         let dataArray = new Uint8Array(bufferLength);
 
@@ -58,6 +78,8 @@ export class Oscillope extends AudioVisualizer {
 
         context.strokeStyle = strokeStyle;
 
+        this._applyForegroundFilters(context);
+
         context.beginPath();
 
         let sliceWidth = canvas.width / bufferLength;
@@ -77,8 +99,6 @@ export class Oscillope extends AudioVisualizer {
         }
 
         context.lineTo(this.canvas.width, this.canvas.height / 2);
-
-        this.beforeDraw(context, canvas, dataArray);
         context.stroke();
     }
 }

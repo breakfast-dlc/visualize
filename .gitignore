@@ -3,3 +3,4 @@ package-lock.json
 example
 dist
 .vscode/
+scripts/

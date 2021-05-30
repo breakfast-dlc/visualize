@@ -1,4 +1,4 @@
-export const MAX_FREQUENCY = 24000;
+export const MAX_FREQUENCY = 20000;
 
 export const MAX_FREQUENCY_DATA_VALUE = 255;
 
