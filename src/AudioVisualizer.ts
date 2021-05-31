@@ -233,8 +233,6 @@ export abstract class AudioVisualizer {
             newHeight = maxWidth * widthToHeightRatio * DPI;
         }
 
-        console.log("resizing");
-
         //Update Canvas
         this.canvas.width = newWidth;
         this.canvas.height = newHeight;
@@ -475,6 +473,7 @@ export abstract class AudioVisualizer {
             !aspectRatio.height ||
             !aspectRatio.width
         ) {
+            console.warn("Failed to set aspectRatio: Invalid configuration.");
             return;
         }
 
