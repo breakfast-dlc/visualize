@@ -7,7 +7,7 @@ const DEFAULT_STROKE_WIDTH = 3;
  */
 export interface OscillopeConfig extends AudioVisualizerConfig {
     /**
-     * (Optional) The width of the Oscillope's line. Defaults to 3.
+     * (Optional) The width of the Oscillope's line in pixels. Defaults to 3.
      */
     lineWidth?: number;
 }

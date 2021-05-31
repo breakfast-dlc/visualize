@@ -44,8 +44,8 @@ export interface AudioVisualizerCallbackIndex {
 export interface AudioVisualizerConfig {
     /**
      * (Optional) The frames per second that the visualition should run at. A high fps will result in a smoother
-     * animation, but uses more resources. By default, the AudioVisualizer will use the highest possible fps, which
-     * is typically around 60 fps
+     * animation, but uses more resources. By default, the AudioVisualizer will use the highest possible fps in the browser, which
+     * is typically around 60 fps.
      */
     fps?: number;
 
@@ -189,7 +189,7 @@ export abstract class AudioVisualizer {
 
         this.canvas = canvas;
         this._callbacks = {
-            onSetUpForeground: {},
+            setUpForeground: {},
         };
 
         //Resize
@@ -435,13 +435,13 @@ export abstract class AudioVisualizer {
     }
 
     /**
-     * Passes the given context to all the callbacks for the onSetUpForeground event
+     * Passes the given context to all the callbacks for the setUpForeground event
      * @param context The canvas context that will be passed to the callbacks
      */
     protected _applyForegroundFilters(
         context: CanvasRenderingContext2D
     ): CanvasRenderingContext2D {
-        const callbacks = Object.values(this._callbacks.onSetUpForeground);
+        const callbacks = Object.values(this._callbacks.setUpForeground);
 
         for (let callback of callbacks) {
             callback(context);
