@@ -20,6 +20,11 @@ export type FftSize =
  */
 export type AudioVisualizerFillColor = string | string[];
 
+export type AudioVisualizerAspectRatio = {
+    width: number;
+    height: number;
+};
+
 /**
  * A callback that can be used to modify the canvas / context while rendering the visual
  */
@@ -105,14 +110,6 @@ export abstract class AudioVisualizer {
     canvas: HTMLCanvasElement;
 
     /**
-     * Aspect ratio for the visualizer
-     */
-    aspectRatio: {
-        height: number;
-        width: number;
-    };
-
-    /**
      * The background color to use for the visual. Can be set to an array,
      * in which case the background color will be set to an array
      */
@@ -132,6 +129,11 @@ export abstract class AudioVisualizer {
      * The fft size to use for the visualizer
      */
     protected _fftSize: FftSize;
+
+    /**
+     * Aspect ratio for the visualizer
+     */
+    protected _aspectRatio: AudioVisualizerAspectRatio = DEFAULT_ASPECT_RATIO;
 
     /**
      * The throttle time to use when controlling fps
@@ -161,8 +163,6 @@ export abstract class AudioVisualizer {
     ) {
         if (config.aspectRatio) {
             this.aspectRatio = config.aspectRatio;
-        } else {
-            this.aspectRatio = DEFAULT_ASPECT_RATIO;
         }
 
         this.backgroundColor = config.backgroundColor;
@@ -188,6 +188,12 @@ export abstract class AudioVisualizer {
         }
 
         this.canvas = canvas;
+
+        //Make sure the canvas does not spill out of container element
+        this.canvas.style.maxWidth = "100%";
+        this.canvas.style.maxHeight = "100%;";
+        this.canvas.style.position = "relative";
+
         this._callbacks = {
             setUpForeground: {},
         };
@@ -226,6 +232,8 @@ export abstract class AudioVisualizer {
             newWidth = maxWidth * DPI;
             newHeight = maxWidth * widthToHeightRatio * DPI;
         }
+
+        console.log("resizing");
 
         //Update Canvas
         this.canvas.width = newWidth;
@@ -448,6 +456,30 @@ export abstract class AudioVisualizer {
         }
 
         return context;
+    }
+
+    /**
+     * Returns the current aspect ratio
+     */
+    get aspectRatio(): AudioVisualizerAspectRatio {
+        return this._aspectRatio;
+    }
+
+    /**
+     * Sets the aspect ratio and triggers a resize
+     */
+    set aspectRatio(aspectRatio: AudioVisualizerAspectRatio) {
+        //Validate aspect ratio
+        if (
+            typeof aspectRatio !== "object" ||
+            !aspectRatio.height ||
+            !aspectRatio.width
+        ) {
+            return;
+        }
+
+        this._aspectRatio = aspectRatio;
+        this.resize();
     }
 
     /**
