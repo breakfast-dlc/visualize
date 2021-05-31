@@ -1,3 +1,7 @@
+## 0.0.3 (May 31, 2021)
+
+-   Added error message for invalid aspectRatio values
+
 ## 0.0.2 (May 31, 2021)
 
 -   Added to _Usage_, _Getting Started_, and _Examples_ sections to README.md
