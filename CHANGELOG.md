@@ -1,3 +1,7 @@
+## 0.0.4 (June 1, 2021)
+
+-   Build process improvements
+
 ## 0.0.3 (May 31, 2021)
 
 -   Added error message for invalid aspectRatio values
