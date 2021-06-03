@@ -40,7 +40,7 @@ export class Oscillope extends AudioVisualizer {
     /**
      * @see AudioVisualizer
      */
-    _draw() {
+    protected _draw() {
         const canvas = this.canvas;
         const context = this._get2DContext();
 
@@ -48,7 +48,9 @@ export class Oscillope extends AudioVisualizer {
             return;
         }
 
+        //Clear frame
         context.clearRect(0, 0, canvas.width, canvas.height);
+
         this._setBackgroundFillStyle(context);
 
         this.analyser.fftSize = this.fftSize;

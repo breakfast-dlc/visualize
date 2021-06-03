@@ -33,7 +33,7 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
     /**
      * @see AudioVisualizer
      */
-    _draw() {
+    protected _draw() {
         if (!this.canvas) {
             return;
         }
@@ -55,9 +55,13 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
 
         const canvasStyle = window.getComputedStyle(this.canvas);
 
-        this._setBackgroundFillStyle(context);
-        //Get fill and stroke from element
+        //Clear frame
+        context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+        //Set Background
+        this._setBackgroundFillStyle(context);
+
+        //Get fill and stroke from element
         const barColor = this.color ?? canvasStyle.getPropertyValue("color");
 
         for (let averageValue of this._getFrequencyAverages()) {

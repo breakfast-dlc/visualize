@@ -1,4 +1,5 @@
-export const MAX_FREQUENCY = 20000;
+//There tends to be relatively low values above 12 khz
+export const MAX_FREQUENCY = 12000;
 
 export const MAX_FREQUENCY_DATA_VALUE = 255;
 
@@ -12,7 +13,7 @@ export const MID_FREQUENCY_DATA_VALUE = 255 / 2;
     Canvas Constants
 */
 
-export const CANVAS_PADDING_TOP = 50;
+export const CANVAS_PADDING_TOP = 0;
 
 /**
  * Get the number of steps from the minimum frequency according to the 12 tone scale

@@ -1,5 +1,9 @@
 import { FrequencyGraph, FrequencyGraphConfig } from "./FrequencyGraph";
-import { CANVAS_PADDING_TOP, frequencyDataToDecibel } from "./helpers";
+import {
+    CANVAS_PADDING_TOP,
+    frequencyDataToDecibel,
+    MAX_FREQUENCY_DATA_VALUE,
+} from "./helpers";
 
 const DEFAULT_LINE_WIDTH = 3;
 
@@ -31,7 +35,7 @@ export class FrequencyCurve extends FrequencyGraph {
     /**
      * @see AudioVisualizer
      */
-    _draw() {
+    protected _draw() {
         if (!this.canvas) {
             return;
         }
@@ -49,7 +53,13 @@ export class FrequencyCurve extends FrequencyGraph {
         const barWidth = (canvasWidth - numBars * gap) / numBars;
         let x = 0;
 
+        //Clear frame
+        context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        //Set Background
         this._setBackgroundFillStyle(context);
+
+        //Set up Foreground
         const canvasStyle = this._getCanvasStyle();
         const strokeColor = this.color ?? canvasStyle.getPropertyValue("color");
         let midpoint = canvasWidth / 2;
@@ -71,7 +81,7 @@ export class FrequencyCurve extends FrequencyGraph {
         context.moveTo(0, this.canvas.height);
 
         for (let averageValue of this._getFrequencyAverages()) {
-            let heightProportion = frequencyDataToDecibel(averageValue) * -1;
+            let heightProportion = averageValue / MAX_FREQUENCY_DATA_VALUE;
             let y = heightProportion * canvasHeight;
             if (y < canvasHeight - 1) {
                 context.lineTo(x, y + CANVAS_PADDING_TOP);
