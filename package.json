@@ -1,6 +1,6 @@
 {
     "name": "@breakfast-dlc/visualize",
-    "version": "0.0.4",
+    "version": "0.1.0",
     "description": "Visualize is a library that uses the Web Audio API to create audio visualizations in the browser.",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

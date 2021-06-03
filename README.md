@@ -2,7 +2,7 @@
 
 Visualize is a library that uses the Web Audio API to create audio visualizations in the browser.
 
-# Installation
+## Installation
 
 You can add Visualize as a package using npm
 
@@ -16,7 +16,7 @@ or you can add it to a page using a script tag.
 <script src="https://cdn.jsdelivr.net/npm/@breakfast-dlc/visualize@latest/dist/index.js"></script>
 ```
 
-# Usage
+## Usage
 
 To import the library
 
@@ -30,9 +30,9 @@ or you can import specific visualizer classes.
 import { Oscillope } from "@breakfast-dlc/visualize";
 ```
 
-# Getting Started
+## Getting Started
 
-## Creating a Visualizer
+### Creating a Visualizer
 
 Visualizers require an [AnalyserNode](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode) and a [canvas element](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement).
 
@@ -49,7 +49,7 @@ let canvas = document.getElementById("canvas");
 let visual = new Visualize.FrequencyGraphBlocks(analyser, canvas);
 ```
 
-## Visualizer Properties
+### Visualizer Properties
 
 All visualizers have the following properties:
 
@@ -78,28 +78,31 @@ let visual = Visualize.Oscillope(analyser, canvas, {
 });
 ```
 
-## Available Visualizers
+### Available Visualizers
 
 Here is a list of all available visualizers as well as any additional properties they may have:
 
-### Oscillope
+#### Oscillope
 
 -   **lineWidth** {_number_}: The width of the Oscillope's line in pixels.
 
-### FrequencyCurve
+#### FrequencyCurve
 
 -   **lineWidth** {_number_}: The width of the Frequency Curve's line in pixels.
+-   **fillColor** {_string | string[]_}: The color / array of color to fill the space under the curve.
 
-### FrequencyGraph
+#### FrequencyGraph
 
 -   **columnCount** {_number_}: The number of columns or bars to use in the visualization.
+-   **gap** {_number_}: The amount of space (in pixels) between each column.
 
-### FrequencyGraphBlocks
+#### FrequencyGraphBlocks
 
 -   **columnCount** {_number_}: The number of columns or bars to use in the visualization.
 -   **rowCount** {_number_}: The number of blocks each column will be split into.
+-   **gap** {_number_}: The amount of space (in pixels) between each column and each row.
 
-## Visualizer Callbacks
+### Visualizer Callbacks
 
 You can add a callback to a visualizer that will run at a specific point each time a frame of the visualization is rendered.
 
@@ -111,11 +114,11 @@ visual.addCallback("setUpForeground", (canvasContext) => {
 });
 ```
 
-### Available Callback Events
+#### Available Callback Events
 
 -   **setUpForeground**: Runs right before the foreground element is rendered.
 
-# Examples
+## Examples
 
 Connect a visualizer to an HTML audio element:
 
