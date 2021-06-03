@@ -99,7 +99,7 @@ export class FrequencyGraph extends AudioVisualizer {
         const totalSteps = getSteps(MAX_VISUALIZER_FREQUENCY);
 
         //Calculate how many steps will be included in the range for each bar. This allows us to split the data up according to an exponential scale
-        const barIncrement = totalSteps / numBars;
+        const stepIncrement = totalSteps / numBars;
 
         //Get size of the frequency range covered by each value in the data array
         const frequencyChunkSize = 22500 / bufferLength; //TODO: Update constructor to create it's own context, then use the contexts sample rate instead of 22,500;
@@ -109,9 +109,9 @@ export class FrequencyGraph extends AudioVisualizer {
         //Get frequency data
         this.analyser.getByteFrequencyData(dataArray);
 
-        for (let i = barIncrement; i < totalSteps; i += barIncrement) {
+        for (let i = 1; i <= numBars; i++) {
             //Get frequency value corresponding from step value
-            let targetFrequency = stepsToFrequency(i);
+            let targetFrequency = stepsToFrequency(i * stepIncrement);
 
             //Get index in data array for the frequency that is the upper limit of the current frequency range
             let targetIndex = Math.round(targetFrequency / frequencyChunkSize);
@@ -154,7 +154,7 @@ export class FrequencyGraph extends AudioVisualizer {
         const canvasWidth = this.canvas.width;
         const canvasHeight = this.canvas.height;
         const gap = this.gap;
-        const totalGapAmount = (numBars - 1) * gap;
+        const totalGapAmount = numBars * gap;
         const barWidth = (canvasWidth - totalGapAmount) / numBars;
 
         let barHeight;

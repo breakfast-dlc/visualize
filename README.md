@@ -120,6 +120,12 @@ visual.addCallback("setUpForeground", (canvasContext) => {
 
 ## Examples
 
+### Live Examples
+
+View a live example [here](https://breakfastdlc.com/code/visualize).
+
+### Code Snippets
+
 Connect a visualizer to an HTML audio element:
 
 ```javascript

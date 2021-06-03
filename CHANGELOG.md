@@ -1,3 +1,8 @@
+## 0.1.1 (June 3, 2021)
+
+-   Added live example to README.
+-   Fixed bug where highest column in FrequencyGraph and FrequencyGraphBlocks was not being displayed.
+
 ## 0.1.0 (June 3, 2021)
 
 -   Added new properties to FrequencyGraph classes. FrequencyGraph and FrequencyGraphBlocks now have the _gap_ property, which controls the spaces between columns and rows. FrequencyCurve now has the fillColor property, which allows for filling in the space under the curve with the specified color.
