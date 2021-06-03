@@ -9,6 +9,8 @@ import {
     frequencyDataToDecibel,
     getSteps,
     MAX_FREQUENCY,
+    MAX_FREQUENCY_DATA_VALUE,
+    MIN_FREQUENCY,
     stepsToFrequency,
 } from "./helpers";
 
@@ -52,30 +54,48 @@ export class FrequencyGraph extends AudioVisualizer {
      * @returns {number[]}
      */
     protected _getFrequencyAverages(): number[] {
+        //Make sure the proper fftSize is set
+        this.analyser.fftSize = this.fftSize;
+
+        //Create array for holding the calculated frequency averages
         const frequencyAverages = [];
+
+        //Get the number of values in the data array
         const bufferLength = this.analyser.frequencyBinCount;
+
+        //Create array to hold the data
         const dataArray = new Uint8Array(bufferLength);
-        const totalSteps = getSteps(MAX_FREQUENCY);
+
+        //Get how many bars will be displayed
         const numBars = this.columnCount ?? DEFAULT_COLUMN_COUNT;
+
+        //Get the total number of steps up the 12 tone scale from the min frequency to the max frequency
+        const totalSteps = getSteps(MAX_FREQUENCY);
+
+        //Calculate how many steps will be included in the range for each bar. This allows us to split the data up according to an exponential scale
         const barIncrement = totalSteps / numBars;
-        const frequencyChunkSize = MAX_FREQUENCY / bufferLength;
+
+        //Get size of the frequency range covered by each value in the data array
+        const frequencyChunkSize = 22500 / bufferLength; //TODO: Update constructor to create it's own context, then use the contexts sample rate instead of 22,500;
 
         let lastTargetIndex = 0;
 
-        this.analyser.fftSize = this.fftSize;
+        //Get frequency data
         this.analyser.getByteFrequencyData(dataArray);
 
         for (let i = barIncrement; i < totalSteps; i += barIncrement) {
-            //Get average value for frequencies in range
+            //Get frequency value corresponding from step value
             let targetFrequency = stepsToFrequency(i);
-            let targetIndex = Math.round(targetFrequency / frequencyChunkSize);
 
+            //Get index in data array for the frequency that is the upper limit of the current frequency range
+            let targetIndex = Math.round(targetFrequency / frequencyChunkSize);
             if (targetIndex > bufferLength - 1) {
                 targetIndex = bufferLength - 1;
             } else if (targetIndex < 0) {
                 targetIndex = 0;
             }
 
+            //Calculate average value of frequency range
             let averageValue = average(
                 dataArray.slice(lastTargetIndex, targetIndex)
             );
@@ -83,7 +103,7 @@ export class FrequencyGraph extends AudioVisualizer {
             //Add average value to array
             frequencyAverages.push(averageValue);
 
-            //Update target index
+            //Update lastTargetIndex to use for calculating the next range of frequencies
             lastTargetIndex = targetIndex;
         }
 
@@ -93,7 +113,7 @@ export class FrequencyGraph extends AudioVisualizer {
     /**
      * @see AudioVisualizer
      */
-    _draw() {
+    protected _draw() {
         if (!this.canvas) {
             return;
         }
@@ -154,7 +174,7 @@ export class FrequencyGraph extends AudioVisualizer {
     }
 
     /**
-     *
+     * Helper function for creating bars in the frequency graph.
      * @param x The x position to start drawing the bar
      * @param y The y position to start drawing the bar. Will be equal to height of the bar
      * @param barWidth The width of the bar
@@ -172,5 +192,11 @@ export class FrequencyGraph extends AudioVisualizer {
             barWidth,
             this.canvas.height - y - CANVAS_PADDING_TOP
         );
+    }
+
+    protected _getHeightProportionFromFrequencyDecibelValue(
+        value: number
+    ): number {
+        return value / MAX_FREQUENCY_DATA_VALUE;
     }
 }
