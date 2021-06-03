@@ -1,7 +1,8 @@
 import { FrequencyGraph, FrequencyGraphConfig } from "./FrequencyGraph";
-import { frequencyDataToDecibel } from "./helpers";
+import { CANVAS_PADDING_TOP_RATIO } from "./helpers";
 
 const DEFAULT_ROW_COUNT = 32;
+const DEFAULT_GAP_SIZE = 4;
 
 /**
  * Defines a configuration that can be passed to a FrequencyGraphBlocks when it is first created
@@ -28,6 +29,7 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
     ) {
         super(analyser, canvas, config);
         this.rowCount = config.rowCount;
+        this.gap = config.gap ?? DEFAULT_GAP_SIZE; //Default gap size for FrequencyGraphBlocks
     }
 
     /**
@@ -47,7 +49,7 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
             this.columnCount ?? FrequencyGraphBlocks._DEFAULT_COLUMN_COUNT;
         const canvasWidth = this.canvas.width;
         const canvasHeight = this.canvas.height;
-        let gapSize = 4;
+        let gapSize = this.gap;
 
         const barWidth = (canvasWidth - numBars * gapSize) / numBars;
 
@@ -65,12 +67,13 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
         const barColor = this.color ?? canvasStyle.getPropertyValue("color");
 
         for (let averageValue of this._getFrequencyAverages()) {
-            let heightProportion = frequencyDataToDecibel(averageValue) * -1;
+            let heightProportion =
+                this._getFrequencyDecibelValueProportion(averageValue);
             let numRows = this.columnCount ?? DEFAULT_ROW_COUNT;
             let blockHeight = (canvasHeight - numRows * gapSize) / numRows;
 
             let heightRemaining =
-                canvasHeight - heightProportion * canvasHeight;
+                heightProportion * canvasHeight * CANVAS_PADDING_TOP_RATIO;
 
             let y = canvasHeight;
 

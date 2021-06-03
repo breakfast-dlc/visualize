@@ -1,9 +1,6 @@
+import { AudioVisualizerFillColor } from "./AudioVisualizer";
 import { FrequencyGraph, FrequencyGraphConfig } from "./FrequencyGraph";
-import {
-    CANVAS_PADDING_TOP,
-    frequencyDataToDecibel,
-    MAX_FREQUENCY_DATA_VALUE,
-} from "./helpers";
+import { CANVAS_PADDING_TOP_RATIO } from "./helpers";
 
 const DEFAULT_LINE_WIDTH = 3;
 
@@ -15,6 +12,11 @@ interface FrequencyCurveConfig extends FrequencyGraphConfig {
      * (Optional) The width of the curve. Defaults to 3;
      */
     lineWidth?: number;
+
+    /**
+     * (Optional) The color to use to fill underneath the curve
+     */
+    fillColor?: AudioVisualizerFillColor;
 }
 
 export class FrequencyCurve extends FrequencyGraph {
@@ -23,6 +25,8 @@ export class FrequencyCurve extends FrequencyGraph {
      */
     lineWidth: number;
 
+    fillColor?: AudioVisualizerFillColor;
+
     constructor(
         analyser: AnalyserNode,
         canvas: HTMLCanvasElement,
@@ -30,6 +34,7 @@ export class FrequencyCurve extends FrequencyGraph {
     ) {
         super(analyser, canvas, config);
         this.lineWidth = config.lineWidth ?? DEFAULT_LINE_WIDTH;
+        this.fillColor = config.fillColor;
     }
 
     /**
@@ -49,8 +54,7 @@ export class FrequencyCurve extends FrequencyGraph {
         const canvasWidth = this.canvas.width;
         const canvasHeight = this.canvas.height;
         const numBars = this.columnCount;
-        const gap = 2;
-        const barWidth = (canvasWidth - numBars * gap) / numBars;
+        const barWidth = canvasWidth / numBars;
         let x = 0;
 
         //Clear frame
@@ -74,23 +78,37 @@ export class FrequencyCurve extends FrequencyGraph {
 
         context.lineWidth = this.lineWidth;
         context.strokeStyle = strokeStyle;
-        context.lineCap = "round";
         this._applyForegroundFilters(context);
 
         context.beginPath();
         context.moveTo(0, this.canvas.height);
 
         for (let averageValue of this._getFrequencyAverages()) {
-            let heightProportion = averageValue / MAX_FREQUENCY_DATA_VALUE;
+            let heightProportion =
+                this._getFrequencyDecibelValueProportion(averageValue);
             let y = heightProportion * canvasHeight;
-            if (y < canvasHeight - 1) {
-                context.lineTo(x, y + CANVAS_PADDING_TOP);
+            if (y < canvasHeight - 1 && y !== 0) {
+                context.lineTo(x, canvasHeight - y * CANVAS_PADDING_TOP_RATIO);
             }
 
-            x += barWidth + gap;
+            x += barWidth;
         }
 
+        //Draw Curve
         context.lineTo(this.canvas.width, this.canvas.height);
         context.stroke();
+
+        if (this.fillColor) {
+            //Fill Curve
+            context.fillStyle =
+                this._getFillStyleFromColor(this.fillColor, [
+                    midpoint,
+                    0,
+                    midpoint,
+                    canvasHeight,
+                ]) ?? "black";
+            context.closePath();
+            context.fill();
+        }
     }
 }

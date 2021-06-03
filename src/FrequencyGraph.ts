@@ -5,17 +5,16 @@ import {
 } from "./AudioVisualizer";
 import {
     average,
-    CANVAS_PADDING_TOP,
-    frequencyDataToDecibel,
+    CANVAS_PADDING_TOP_RATIO,
     getSteps,
-    MAX_FREQUENCY,
-    MAX_FREQUENCY_DATA_VALUE,
-    MIN_FREQUENCY,
+    MAX_VISUALIZER_FREQUENCY,
+    MAX_FREQUENCY_DECIBEL_VALUE,
     stepsToFrequency,
 } from "./helpers";
 
 const DEFAULT_COLUMN_COUNT = 32;
 const DEFAULT_COLOR = "black";
+const DEFAULT_GAP_SIZE = 2;
 
 /**
  * Defines a configuration that can be passed to a FrequencyGraph when it is first created
@@ -26,6 +25,11 @@ export interface FrequencyGraphConfig extends AudioVisualizerConfig {
      * different part of the frequency range. Defaults to 32
      */
     columnCount?: number;
+
+    /**
+     * (Optional) The amount of space between each column
+     */
+    gap?: number;
 }
 
 export class FrequencyGraph extends AudioVisualizer {
@@ -37,6 +41,11 @@ export class FrequencyGraph extends AudioVisualizer {
      */
     columnCount: number;
 
+    /**
+     * The amount of space between each column
+     */
+    gap: number;
+
     constructor(
         analyser: AnalyserNode,
         canvas: HTMLCanvasElement,
@@ -45,7 +54,27 @@ export class FrequencyGraph extends AudioVisualizer {
         super(analyser, canvas, config);
 
         this.columnCount = config.columnCount ?? DEFAULT_COLUMN_COUNT;
+        this.gap = config.gap ?? DEFAULT_GAP_SIZE;
         this._fftSize = 16384;
+    }
+
+    /**
+     * Returns frequency data from the analyser
+     */
+    protected _getFrequencyData(): Uint8Array {
+        //Make sure the proper fftSize is set
+        this.analyser.fftSize = this.fftSize;
+
+        //Get the number of values in the data array
+        const bufferLength = this.analyser.frequencyBinCount;
+
+        //Create array to hold the data
+        const dataArray = new Uint8Array(bufferLength);
+
+        //Get frequency data
+        this.analyser.getByteFrequencyData(dataArray);
+
+        return dataArray;
     }
 
     /**
@@ -54,23 +83,20 @@ export class FrequencyGraph extends AudioVisualizer {
      * @returns {number[]}
      */
     protected _getFrequencyAverages(): number[] {
-        //Make sure the proper fftSize is set
-        this.analyser.fftSize = this.fftSize;
-
         //Create array for holding the calculated frequency averages
         const frequencyAverages = [];
 
         //Get the number of values in the data array
         const bufferLength = this.analyser.frequencyBinCount;
 
-        //Create array to hold the data
-        const dataArray = new Uint8Array(bufferLength);
+        //Get frequency data
+        const dataArray = this._getFrequencyData();
 
         //Get how many bars will be displayed
         const numBars = this.columnCount ?? DEFAULT_COLUMN_COUNT;
 
         //Get the total number of steps up the 12 tone scale from the min frequency to the max frequency
-        const totalSteps = getSteps(MAX_FREQUENCY);
+        const totalSteps = getSteps(MAX_VISUALIZER_FREQUENCY);
 
         //Calculate how many steps will be included in the range for each bar. This allows us to split the data up according to an exponential scale
         const barIncrement = totalSteps / numBars;
@@ -127,10 +153,13 @@ export class FrequencyGraph extends AudioVisualizer {
         const numBars = this.columnCount ?? DEFAULT_COLUMN_COUNT;
         const canvasWidth = this.canvas.width;
         const canvasHeight = this.canvas.height;
-        const gap = 2;
-        const barWidth = (canvasWidth - numBars * gap) / numBars;
+        const gap = this.gap;
+        const totalGapAmount = (numBars - 1) * gap;
+        const barWidth = (canvasWidth - totalGapAmount) / numBars;
 
         let barHeight;
+
+        //Starting x coordinate
         let x = 0;
 
         //Clear frame
@@ -165,10 +194,12 @@ export class FrequencyGraph extends AudioVisualizer {
 
         //Draw Bars
         for (let averageValue of this._getFrequencyAverages()) {
-            let heightProportion = frequencyDataToDecibel(averageValue) * -1;
-            barHeight = heightProportion * canvasHeight;
+            barHeight =
+                this._getFrequencyDecibelValueProportion(averageValue) *
+                canvasHeight *
+                CANVAS_PADDING_TOP_RATIO;
             this._applyForegroundFilters(context);
-            this._fillFrequencyBar(x, barHeight, barWidth);
+            this._fillFrequencyBar(x, canvasHeight - barHeight, barWidth);
             x += barWidth + gap; // Gives space between each bar
         }
     }
@@ -186,17 +217,15 @@ export class FrequencyGraph extends AudioVisualizer {
             return null;
         }
 
-        context.fillRect(
-            x,
-            y + CANVAS_PADDING_TOP,
-            barWidth,
-            this.canvas.height - y - CANVAS_PADDING_TOP
-        );
+        context.fillRect(x, y, barWidth, this.canvas.height - y);
     }
 
-    protected _getHeightProportionFromFrequencyDecibelValue(
-        value: number
-    ): number {
-        return value / MAX_FREQUENCY_DATA_VALUE;
+    /**
+     * Returns the proportion for the given frequency decibel value when compared to the max frequency decibel value
+     * @param value The frequency decibel value
+     * @returns The
+     */
+    protected _getFrequencyDecibelValueProportion(value: number): number {
+        return value / MAX_FREQUENCY_DECIBEL_VALUE;
     }
 }
