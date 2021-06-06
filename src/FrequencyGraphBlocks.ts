@@ -22,12 +22,8 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
      */
     rowCount?: number;
 
-    constructor(
-        analyser: AnalyserNode,
-        canvas: HTMLCanvasElement,
-        config: FrequencyGraphBlocksConfig = {}
-    ) {
-        super(analyser, canvas, config);
+    constructor(config: FrequencyGraphBlocksConfig = {}) {
+        super(config);
         this.rowCount = config.rowCount;
         this.gap = config.gap ?? DEFAULT_GAP_SIZE; //Default gap size for FrequencyGraphBlocks
     }

@@ -1,3 +1,7 @@
+## 0.2.0 (TBD)
+
+-   Updated constructor. Visualizers now only take one argument in the constructor, which is an optional object representing the initial configuration of the visualizer. Any properties that are not specified in the initial configuration are created / set automatically.
+
 ## 0.1.1 (June 3, 2021)
 
 -   Added live example to README.

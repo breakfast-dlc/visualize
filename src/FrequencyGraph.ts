@@ -46,12 +46,8 @@ export class FrequencyGraph extends AudioVisualizer {
      */
     gap: number;
 
-    constructor(
-        analyser: AnalyserNode,
-        canvas: HTMLCanvasElement,
-        config: FrequencyGraphConfig = {}
-    ) {
-        super(analyser, canvas, config);
+    constructor(config: FrequencyGraphConfig = {}) {
+        super(config);
 
         this.columnCount = config.columnCount ?? DEFAULT_COLUMN_COUNT;
         this.gap = config.gap ?? DEFAULT_GAP_SIZE;
@@ -102,7 +98,8 @@ export class FrequencyGraph extends AudioVisualizer {
         const stepIncrement = totalSteps / numBars;
 
         //Get size of the frequency range covered by each value in the data array
-        const frequencyChunkSize = 22500 / bufferLength; //TODO: Update constructor to create it's own context, then use the contexts sample rate instead of 22,500;
+        const frequencyChunkSize =
+            this._getMaxAnalyserFrequency() / bufferLength;
 
         let lastTargetIndex = 0;
 
@@ -134,6 +131,14 @@ export class FrequencyGraph extends AudioVisualizer {
         }
 
         return frequencyAverages;
+    }
+
+    /**
+     * Returns the max frequency in the frequency spread returned by the analyser node, equal to half
+     * of the audio context sample rate.
+     */
+    protected _getMaxAnalyserFrequency(): number {
+        return this.analyser.context.sampleRate / 2;
     }
 
     /**

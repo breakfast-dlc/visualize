@@ -21,12 +21,8 @@ export class Oscillope extends AudioVisualizer {
      */
     lineWidth: number;
 
-    constructor(
-        analyser: AnalyserNode,
-        canvas: HTMLCanvasElement,
-        config: OscillopeConfig = {}
-    ) {
-        super(analyser, canvas, config);
+    constructor(config: OscillopeConfig = {}) {
+        super(config);
 
         if (config) {
             this.lineWidth = config.lineWidth ?? DEFAULT_STROKE_WIDTH;

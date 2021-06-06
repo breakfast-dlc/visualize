@@ -27,12 +27,8 @@ export class FrequencyCurve extends FrequencyGraph {
 
     fillColor?: AudioVisualizerFillColor;
 
-    constructor(
-        analyser: AnalyserNode,
-        canvas: HTMLCanvasElement,
-        config: FrequencyCurveConfig = {}
-    ) {
-        super(analyser, canvas, config);
+    constructor(config: FrequencyCurveConfig = {}) {
+        super(config);
         this.lineWidth = config.lineWidth ?? DEFAULT_LINE_WIDTH;
         this.fillColor = config.fillColor;
     }

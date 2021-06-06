@@ -48,6 +48,16 @@ export interface AudioVisualizerCallbackIndex {
  */
 export interface AudioVisualizerConfig {
     /**
+     * The canvas element the visualizer will use to display the visual
+     */
+    canvas?: HTMLCanvasElement;
+
+    /**
+     * The analyser node from which the visualizer will get data about the audio
+     */
+    analyser?: AnalyserNode;
+
+    /**
      * (Optional) The frames per second that the visualition should run at. A high fps will result in a smoother
      * animation, but uses more resources. By default, the AudioVisualizer will use the highest possible fps in the browser, which
      * is typically around 60 fps.
@@ -105,11 +115,6 @@ export abstract class AudioVisualizer {
     analyser: AnalyserNode;
 
     /**
-     * The canvas element the visualizer will use to display the visual
-     */
-    canvas: HTMLCanvasElement;
-
-    /**
      * The background color to use for the visual. Can be set to an array,
      * in which case the background color will be set to an array
      */
@@ -119,6 +124,11 @@ export abstract class AudioVisualizer {
      * The foreground color to use for the visual. Can be set to an array
      */
     color?: AudioVisualizerFillColor;
+
+    /**
+     * The canvas element the visualizer will use to display the visual
+     */
+    protected _canvas: HTMLCanvasElement;
 
     /**
      * Whether or not the animation is currently active
@@ -156,17 +166,19 @@ export abstract class AudioVisualizer {
      * @param canvas A canvas element that the visualization will be rendered in
      * @param config (Optional) An object that describes how the AudioVisualizer should be configured
      */
-    constructor(
-        analyser: AnalyserNode,
-        canvas: HTMLCanvasElement,
-        config: AudioVisualizerConfig = {}
-    ) {
+    constructor(config: AudioVisualizerConfig = {}) {
+        //Get analyser from config or create new one
+        this.analyser =
+            config.analyser ?? new window.AudioContext().createAnalyser();
+
+        //Get canvas element from config or create new one if necessary
+        this._canvas = config.canvas ?? document.createElement("canvas");
+        this.backgroundColor = config.backgroundColor;
+        this.color = config.color;
+
         if (config.aspectRatio) {
             this.aspectRatio = config.aspectRatio;
         }
-
-        this.backgroundColor = config.backgroundColor;
-        this.color = config.color;
 
         if (config.fps) {
             this.fps = config.fps;
@@ -176,23 +188,6 @@ export abstract class AudioVisualizer {
 
         //Initalize animation state
         this._animationIsActive = true;
-
-        if (!analyser) {
-            console.error("Error: analyser is null or undefined");
-        }
-
-        this.analyser = analyser;
-
-        if (!canvas) {
-            console.error("Error: canvas is null or undefined");
-        }
-
-        this.canvas = canvas;
-
-        //Make sure the canvas does not spill out of container element
-        this.canvas.style.maxWidth = "100%";
-        this.canvas.style.maxHeight = "100%;";
-        this.canvas.style.position = "relative";
 
         this._callbacks = {
             setUpForeground: {},
@@ -236,6 +231,11 @@ export abstract class AudioVisualizer {
         //Update Canvas
         this.canvas.width = newWidth;
         this.canvas.height = newHeight;
+
+        //Make sure the canvas does not spill out of container element
+        this.canvas.style.maxWidth = "100%";
+        this.canvas.style.maxHeight = "100%;";
+        this.canvas.style.position = "relative";
     }
 
     /**
@@ -454,6 +454,28 @@ export abstract class AudioVisualizer {
         }
 
         return context;
+    }
+
+    /**
+     * Returns the analyser's audio context
+     */
+    get audioContext(): BaseAudioContext {
+        return this.analyser.context;
+    }
+
+    /**
+     * Returns the visualizers canvas element
+     */
+    get canvas(): HTMLCanvasElement {
+        return this._canvas;
+    }
+
+    /**
+     * Sets the visualizer's canvas element and automatically triggers a resize
+     */
+    set canvas(canvas: HTMLCanvasElement) {
+        this._canvas = canvas;
+        this.resize();
     }
 
     /**

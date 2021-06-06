@@ -34,25 +34,47 @@ import { Oscillope } from "@breakfast-dlc/visualize";
 
 ### Creating a Visualizer
 
-Visualizers require an [AnalyserNode](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode) and a [canvas element](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement).
+Visualizers require an [AnalyserNode](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode) and a [canvas element](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement). Visualize will automatically create these for you.
 
 ```javascript
-//Get AnalyserNode
+//Create visualizer
+let visual = new Visual.FrequencyGraph();
+
+//Add canvas to document
+let container = document.getElementById("container");
+container.append(visual.canvas);
+
+//Connect audio source to visualizer
+let audio = document.getElementById("audio");
+let mediaSource = visualizer.audioContext.createMediaElementSource(audio);
+mediaSource.connect(visual.analyser);
+```
+
+You can also assign your own AnalyserNode and canvas element
+
+```javascript
+//Create AnalyserNode
 let audioContext = new window.AudioContext();
 let analyser = audioContext.createAnalyser();
-someMediaSource.connect(analyser);
+
+//Connect audio to analyser
+let audio = document.getElementById("audio");
+let mediaSource = audioContext.createMediaElementSource(audio);
+mediaSource.connect(analyser);
 
 //Get canvas element
 let canvas = document.getElementById("canvas");
 
-//Create Visualizer
-let visual = new Visualize.FrequencyGraphBlocks(analyser, canvas);
+//Create visualizer
+let visual = new Visualize.FrequencyGraphBlocks({ analyser, canvas });
 ```
 
 ### Visualizer Properties
 
 All visualizers have the following properties:
 
+-   **analyser** {_AnalyserNode_}: The AnalyserNode the visualizer will use to get data about the audio.
+-   **canvas** {_HTMLCanvasElement_}: The canvas element the visual will use to render the visual.
 -   **fps** {_number_}: The frames per second that the visualition should run at. Defaults to the highest possible fps in the browser, which
     is typically around 60 fps.
 -   **aspectRatio** { {height: _number_ , width: _number_ } }: The aspect ratio to use when sizing the canvas. Defaults to 16:9.
@@ -62,7 +84,9 @@ All visualizers have the following properties:
 All properties can be set directly
 
 ```javascript
-let visual = Visualize.Oscillope(analyser, canvas);
+let visual = Visualize.Oscillope();
+visual.analyser = customAnalyser;
+visual.canvas = customCanvas;
 visual.lineWidth = 5;
 visual.backgroundColor = ["#333333", "#DDDDDD"];
 visual.color = "aqua";
@@ -71,7 +95,9 @@ visual.color = "aqua";
 as well as set when the object is created.
 
 ```javascript
-let visual = Visualize.Oscillope(analyser, canvas, {
+let visual = Visualize.Oscillope({
+    analyser: customAnalyser,
+    canvas: customCanvas,
     lineWidth: 5,
     backgroundColor: ["#333333", "#DDDDDD"],
     color: "aqua",
@@ -107,7 +133,7 @@ Here is a list of all available visualizers as well as any additional properties
 You can add a callback to a visualizer that will run at a specific point each time a frame of the visualization is rendered.
 
 ```javascript
-let visual = new Visualize.FrequencyCurve(analyser, canvas);
+let visual = new Visualize.FrequencyCurve({ analyser, canvas });
 visual.addCallback("setUpForeground", (canvasContext) => {
     canvasContext.shadowColor = "#CCCCCC";
     canvasContext.shadowBlur = 15;
@@ -143,7 +169,7 @@ track.connect(analyser);
 let canvas = document.getElementById("canvas");
 
 //Create Visualizer
-let visual = new Visualize.FrequencyGraphBlocks(analyser, canvas);
+let visual = new Visualize.FrequencyGraphBlocks({ analyser, canvas });
 visual.backgroundColor = ["#333333", "#CCCCCC"];
 visual.color = ["orange", "gold", "yellow"];
 
@@ -154,8 +180,9 @@ audio.play();
 Make a visualizer fill an html element:
 
 ```javascript
-let container = document.getElementById("canvas-container");
-let visual = new Visualize.Oscillope(analyser, canvas);
+let container = document.getElementById("container");
+let visual = new Visualize.Oscillope();
+container.append(visual.canvas);
 visual.aspectRatio = {
     width: container.clientWidth,
     height: container.clientHeight,
@@ -165,7 +192,7 @@ visual.aspectRatio = {
 Resize a visualizer when the window resizes:
 
 ```javascript
-let visual = new Visualize.FrequencyGraph(analyser, canvas);
+let visual = new Visualize.FrequencyGraph({ analyser, canvas });
 
 window.addEventListener("resize", () => {
     visual.resize();
