@@ -159,7 +159,7 @@ export class FrequencyGraph extends AudioVisualizer {
         const canvasWidth = this.canvas.width;
         const canvasHeight = this.canvas.height;
         const gap = this.gap;
-        const totalGapAmount = numBars * gap;
+        const totalGapAmount = (numBars - 1) * gap;
         const barWidth = (canvasWidth - totalGapAmount) / numBars;
 
         let barHeight;

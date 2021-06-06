@@ -46,8 +46,8 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
         const canvasWidth = this.canvas.width;
         const canvasHeight = this.canvas.height;
         let gapSize = this.gap;
-
-        const barWidth = (canvasWidth - numBars * gapSize) / numBars;
+        let totalGapAmount = (numBars - 1) * gapSize;
+        const barWidth = (canvasWidth - totalGapAmount) / numBars;
 
         let x = 0;
 
