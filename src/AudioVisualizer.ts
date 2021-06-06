@@ -108,7 +108,7 @@ const DEFAULT_BACKGROUND_COLOR = "white";
 /**
  * Base AudioVisualizer class
  */
-export abstract class AudioVisualizer {
+export class AudioVisualizer {
     /**
      * The analyser node from which the visualizer will get data about the audio
      */
@@ -345,9 +345,11 @@ export abstract class AudioVisualizer {
     }
 
     /**
-     * Renders the visualization on each animation frame.
+     * Renders the visualization on each animation frame. Should be overriden and implemented by child classes.
      */
-    protected abstract _draw(): void;
+    protected _draw(): void {
+        throw new Error("Draw function has not been implemented");
+    }
 
     /**
      * Returns the canvas's 2d context
