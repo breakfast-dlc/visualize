@@ -1,6 +1,7 @@
 ## 0.2.0 (TBD)
 
--   Updated constructor. Visualizers now only take one argument in the constructor, which is an optional object representing the initial configuration of the visualizer. Any properties that are not specified in the initial configuration are created / set automatically.
+-   Updated constructor. Visualizers now only take one optional argument in the constructor, which is an object representing the initial configuration of the visualizer. Any properties that are not specified in the initial configuration are created / set automatically.
+-   Added static helper methods for quickly creating visualizers using audio elements and audio streams.
 
 ## 0.1.1 (June 3, 2021)
 

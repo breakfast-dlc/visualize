@@ -161,6 +161,39 @@ export abstract class AudioVisualizer {
     protected _callbacks: AudioVisualizerCallbackIndex;
 
     /**
+     * Returns a visualizer that is connected to the given media element
+     * @param element The media element to connect to the visualizer
+     * @returns
+     */
+    static fromMediaElement(element: HTMLMediaElement): AudioVisualizer {
+        let visual = new this();
+
+        //Connect media element
+        let mediaSource = visual.audioContext.createMediaElementSource(element);
+        mediaSource.connect(visual.analyser);
+        mediaSource.connect(visual.audioContext.destination);
+
+        return visual;
+    }
+
+    /**
+     * Returns a visualizer that is connected to the given media stream
+     * @param stream The media stream to connect to the visualizer
+     * @returns
+     */
+    static fromMediaStream(stream: MediaStream): AudioVisualizer {
+        //Create visualizer
+        const visual = new this();
+
+        //Connect media element
+        let mediaSource = visual.audioContext.createMediaStreamSource(stream);
+        mediaSource.connect(visual.analyser);
+        mediaSource.connect(visual.audioContext.destination);
+
+        return visual;
+    }
+
+    /**
      *
      * @param analyser An AnalyserNode that is connected to the audio source that will be visualized
      * @param canvas A canvas element that the visualization will be rendered in
@@ -459,8 +492,8 @@ export abstract class AudioVisualizer {
     /**
      * Returns the analyser's audio context
      */
-    get audioContext(): BaseAudioContext {
-        return this.analyser.context;
+    get audioContext(): AudioContext {
+        return this.analyser.context as AudioContext;
     }
 
     /**

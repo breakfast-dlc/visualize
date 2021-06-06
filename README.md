@@ -13,7 +13,7 @@ npm install @breakfast-dlc/visualize
 or you can add it to a page using a script tag.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@breakfast-dlc/visualize@latest/dist/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@breakfast-dlc/visualize@0.2.0/dist/index.js"></script>
 ```
 
 ## Usage
@@ -46,7 +46,7 @@ container.append(visual.canvas);
 
 //Connect audio source to visualizer
 let audio = document.getElementById("audio");
-let mediaSource = visualizer.audioContext.createMediaElementSource(audio);
+let mediaSource = visual.audioContext.createMediaElementSource(audio);
 mediaSource.connect(visual.analyser);
 ```
 
@@ -155,23 +155,16 @@ View a live example [here](https://breakfastdlc.com/code/visualize).
 Connect a visualizer to an HTML audio element:
 
 ```javascript
-//Create media element source from audio element
-let context = new window.AudioContext();
+//Get audio element
 let audio = document.getElementById("audio");
-let track = context.createMediaElementSource(audio);
-track.connect(context.destination);
-
-//Create analyser node and connect audio to analyser
-let analyser = context.createAnalyser();
-track.connect(analyser);
-
-//Get canvas element
-let canvas = document.getElementById("canvas");
 
 //Create Visualizer
-let visual = new Visualize.FrequencyGraphBlocks({ analyser, canvas });
+let visual = new Visualize.FrequencyGraphBlocks.fromMediaElement(audio);
 visual.backgroundColor = ["#333333", "#CCCCCC"];
 visual.color = ["orange", "gold", "yellow"];
+
+//Add canvas to document
+document.getElementById("container").append(visual.canvas);
 
 //Start Audio
 audio.play();
