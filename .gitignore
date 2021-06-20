@@ -3,4 +3,6 @@ package-lock.json
 example
 dist
 .vscode/
-scripts/
+coverage/
+test
+karma.conf.js
