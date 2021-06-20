@@ -6,7 +6,11 @@ const exec = util.promisify(require("child_process").exec);
  */
 const build = async () => {
     console.log("Running webpack production build");
-    await exec("npx webpack --config webpack.prod.js");
+    try {
+        await exec("npx webpack --config webpack.prod.js");
+    } catch (e) {
+        console.log(e);
+    }
 };
 
 /**
@@ -14,7 +18,11 @@ const build = async () => {
  */
 const publish = async () => {
     console.log("Publishing to npm");
-    await exec("npm publish --access public");
+    try {
+        await exec("npm publish --access public");
+    } catch (e) {
+        console.log(e);
+    }
 };
 
 module.exports = {
