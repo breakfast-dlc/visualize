@@ -38,7 +38,7 @@ Visualizers require an [AnalyserNode](https://developer.mozilla.org/en-US/docs/W
 
 ```javascript
 //Create visualizer
-let visual = new Visual.FrequencyGraph();
+let visual = new Visualize.FrequencyGraph();
 
 //Add canvas to document
 let container = document.getElementById("container");

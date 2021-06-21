@@ -1,3 +1,7 @@
+## 0.2.1 (June 20,2021)
+
+-   Fixed errors in README.md
+
 ## 0.2.0 (June 20,2021)
 
 -   Updated constructor. Visualizers now only take one optional argument in the constructor, which is an object representing the initial configuration of the visualizer. Any properties that are not specified in the initial configuration are created / set automatically.
