@@ -45,7 +45,7 @@ export class Oscillope extends AudioVisualizer {
         }
 
         //Clear frame
-        context.clearRect(0, 0, canvas.width, canvas.height);
+        this._clearCanvas();
 
         this._setBackgroundFillStyle(context);
 

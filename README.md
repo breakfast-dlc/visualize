@@ -134,7 +134,7 @@ You can add a callback to a visualizer that will run at a specific point each ti
 
 ```javascript
 let visual = new Visualize.FrequencyCurve({ analyser, canvas });
-visual.addCallback("setUpForeground", (canvasContext) => {
+visual.on("setUpForeground", (canvasContext) => {
     canvasContext.shadowColor = "#CCCCCC";
     canvasContext.shadowBlur = 15;
 });

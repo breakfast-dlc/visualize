@@ -54,7 +54,7 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
         const canvasStyle = window.getComputedStyle(this.canvas);
 
         //Clear frame
-        context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this._clearCanvas();
 
         //Set Background
         this._setBackgroundFillStyle(context);

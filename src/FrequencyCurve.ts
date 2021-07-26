@@ -54,7 +54,7 @@ export class FrequencyCurve extends FrequencyGraph {
         let x = 0;
 
         //Clear frame
-        context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this._clearCanvas();
 
         //Set Background
         this._setBackgroundFillStyle(context);

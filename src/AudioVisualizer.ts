@@ -136,6 +136,11 @@ export class AudioVisualizer {
     protected _animationIsActive: boolean;
 
     /**
+     * The id of the last animation request
+     */
+    protected _lastAnimationRequestId?: number;
+
+    /**
      * The fft size to use for the visualizer
      */
     protected _fftSize: FftSize;
@@ -284,18 +289,31 @@ export class AudioVisualizer {
 
         if (this._throttleTime && this._throttleTime >= MIN_THROTTLE_TIME) {
             setTimeout(() => {
-                requestAnimationFrame(this.start);
+                this._lastAnimationRequestId = requestAnimationFrame(
+                    this.start
+                );
             }, this._throttleTime);
         } else {
-            requestAnimationFrame(this.start);
+            this._lastAnimationRequestId = requestAnimationFrame(this.start);
         }
     };
+
+    /**
+     * Pauses the animation
+     */
+    pause() {
+        if (this._lastAnimationRequestId) {
+            cancelAnimationFrame(this._lastAnimationRequestId);
+        }
+        this._animationIsActive = false;
+    }
 
     /**
      * Stops the animation loop
      */
     stop() {
-        this._animationIsActive = false;
+        this.pause();
+        this._clearCanvas();
     }
 
     /**
@@ -367,6 +385,14 @@ export class AudioVisualizer {
         }
 
         return this._canvasStyleCache;
+    }
+
+    /**
+     * Clears the canvas
+     */
+    protected _clearCanvas() {
+        const context = this._get2DContext();
+        context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
     /**
