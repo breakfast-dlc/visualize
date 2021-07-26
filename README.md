@@ -13,7 +13,7 @@ npm install @breakfast-dlc/visualize
 or you can add it to a page using a script tag.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@breakfast-dlc/visualize@0.2.0/dist/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@breakfast-dlc/visualize@0.2.2/dist/index.js"></script>
 ```
 
 ## Usage
