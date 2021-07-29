@@ -192,9 +192,11 @@ export class FrequencyGraph extends AudioVisualizer {
             midX,
             canvasHeight,
         ]);
+
         if (!fillStyle) {
             fillStyle = DEFAULT_COLOR;
         }
+
         context.fillStyle = fillStyle;
 
         //Draw Bars

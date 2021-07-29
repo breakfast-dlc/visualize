@@ -131,14 +131,29 @@ export class AudioVisualizer {
     protected _canvas: HTMLCanvasElement;
 
     /**
+     * A cache for the calculated canvas style
+     */
+    protected _canvasStyleCache?: CSSStyleDeclaration;
+
+    /**
      * Whether or not the animation is currently active
      */
-    protected _animationIsActive: boolean;
+    protected _animationIsActive: boolean = false;
 
     /**
      * The id of the last animation request
      */
     protected _lastAnimationRequestId?: number;
+
+    /**
+     * The throttle time to use when controlling fps
+     */
+    protected _throttleTime?: number;
+
+    /**
+     * A variable for helping to keep track of elapsed time when controlling fps
+     */
+    protected _then: number;
 
     /**
      * The fft size to use for the visualizer
@@ -149,16 +164,6 @@ export class AudioVisualizer {
      * Aspect ratio for the visualizer
      */
     protected _aspectRatio: AudioVisualizerAspectRatio = DEFAULT_ASPECT_RATIO;
-
-    /**
-     * The throttle time to use when controlling fps
-     */
-    protected _throttleTime?: number;
-
-    /**
-     * A cache for the calculated canvas style
-     */
-    protected _canvasStyleCache?: CSSStyleDeclaration;
 
     /**
      * An object containing callbacks organized by event type
@@ -222,10 +227,9 @@ export class AudioVisualizer {
             this.fps = config.fps;
         }
 
-        this._fftSize = DEFAULT_FFT_SIZE;
+        this._then = Date.now();
 
-        //Initalize animation state
-        this._animationIsActive = true;
+        this._fftSize = DEFAULT_FFT_SIZE;
 
         this._callbacks = {
             setUpForeground: {},
@@ -238,7 +242,7 @@ export class AudioVisualizer {
     /**
      * Resizes the canvas element according to the width of the parent element and the specified aspect ratio
      */
-    resize() {
+    resize = () => {
         const parent = this.canvas.parentElement;
 
         if (!parent) {
@@ -274,28 +278,15 @@ export class AudioVisualizer {
         this.canvas.style.maxWidth = "100%";
         this.canvas.style.maxHeight = "100%;";
         this.canvas.style.position = "relative";
-    }
+    };
 
     /**
      * Starts the animation loop for the visualizer
      */
     start = () => {
-        if (!this._animationIsActive) {
-            return;
-        }
-
-        this._draw();
-        this._clearCanvasStyle();
-
-        if (this._throttleTime && this._throttleTime >= MIN_THROTTLE_TIME) {
-            setTimeout(() => {
-                this._lastAnimationRequestId = requestAnimationFrame(
-                    this.start
-                );
-            }, this._throttleTime);
-        } else {
-            this._lastAnimationRequestId = requestAnimationFrame(this.start);
-        }
+        this._then = Date.now();
+        this._animationIsActive = true;
+        this._animate();
     };
 
     /**
@@ -321,11 +312,10 @@ export class AudioVisualizer {
      */
     reset() {
         this.stop();
-        setTimeout(() => {
-            this._animationIsActive = true;
-            requestAnimationFrame(this.start);
+        requestAnimationFrame(() => {
             this.resize();
-        }, (this._throttleTime ?? MIN_THROTTLE_TIME) * 2);
+            this.start();
+        });
     }
 
     /**
@@ -361,6 +351,34 @@ export class AudioVisualizer {
 
         this._callbacks[eventName][index] = callback;
     }
+
+    /**
+     * Handles the animation loop
+     */
+    protected _animate = () => {
+        if (!this._animationIsActive) {
+            return;
+        }
+
+        if (this._throttleTime && this._throttleTime >= MIN_THROTTLE_TIME) {
+            const now = Date.now();
+            const elapsed = now - this._then;
+
+            //If elapsed time is less than the set throttle time, skip drawing this frame
+            if (elapsed <= this._throttleTime) {
+                this._lastAnimationRequestId = requestAnimationFrame(
+                    this._animate
+                );
+                return;
+            }
+
+            this._then = now - (elapsed % this._throttleTime);
+        }
+
+        this._draw();
+        this._clearCanvasStyle();
+        this._lastAnimationRequestId = requestAnimationFrame(this._animate);
+    };
 
     /**
      * Renders the visualization on each animation frame. Should be overriden and implemented by child classes.
