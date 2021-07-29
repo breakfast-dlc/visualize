@@ -28,11 +28,7 @@ export type AudioVisualizerAspectRatio = {
 /**
  * A callback that can be used to modify the canvas / context while rendering the visual
  */
-export type AudioVisualizerCallback = (
-    context: CanvasRenderingContext2D | WebGL2RenderingContext,
-    canvas?: HTMLCanvasElement,
-    data?: any
-) => void;
+export type AudioVisualizerCallback = (...data: any[]) => void;
 
 /**
  * An index of all callbacks that have been passed to the visualizer
@@ -526,13 +522,25 @@ export class AudioVisualizer {
     protected _applyForegroundFilters(
         context: CanvasRenderingContext2D
     ): CanvasRenderingContext2D {
-        const callbacks = Object.values(this._callbacks.setUpForeground);
+        this._trigger("setUpForeground", context);
+        return context;
+    }
 
-        for (let callback of callbacks) {
-            callback(context);
+    /**
+     * Triggers an event
+     * @param event The name of the event
+     * @param args Argurments that should be passed to the callbacks for the event
+     * @returns
+     */
+    protected _trigger(event: string, ...args: any[]) {
+        const callbacks = this._callbacks[event];
+        if (!callbacks) {
+            return;
         }
 
-        return context;
+        for (let callback of Object.values(callbacks)) {
+            callback.apply(null, args);
+        }
     }
 
     /**
