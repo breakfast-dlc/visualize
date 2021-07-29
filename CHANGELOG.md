@@ -1,3 +1,8 @@
+## 0.2.3 (July 29, 2021)
+
+-   Animation fps updates for smoother animations
+-   More flexible event callback structure
+
 ## 0.2.2 (July 26, 2021)
 
 -   Visualizers can now be paused.
