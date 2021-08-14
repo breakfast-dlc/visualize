@@ -1,2 +1,2 @@
-const { exec } = require("child_process");
-exec("webpack --config webpack.dev.js --watch");
+const { spawnAndLogOutPutToConsole } = require("./helpers");
+spawnAndLogOutPutToConsole(`webpack`, ["--config", "webpack.dev.js", "--watch"]);

@@ -12,22 +12,24 @@
         "@types/mocha": "^8.2.2",
         "chai": "^4.3.4",
         "karma": "^6.3.4",
+        "karma-babel-preprocessor": "^8.0.1",
         "karma-chai": "^0.1.0",
         "karma-chrome-launcher": "^3.1.0",
         "karma-cli": "^2.0.0",
+        "karma-coverage": "^2.0.3",
         "karma-mocha": "^2.0.1",
-        "karma-typescript": "^5.5.1",
         "mocha": "^8.4.0",
         "ts-loader": "^9.1.2",
         "typescript": "^4.2.4",
         "webpack": "^5.37.0",
         "webpack-cli": "^4.7.0",
-        "webpack-merge": "^5.7.3"
+        "webpack-merge": "^5.7.3",
+        "yargs": "^16.2.0"
     },
     "scripts": {
         "start": "node scripts/start.js",
-        "test": "karma start ",
-        "test:debug": "karma start --log-level debug",
+        "test": "node scripts/test.js",
+        "test:debug": "node scripts/test.js --debug",
         "build": "node scripts/build.js",
         "publish": "node scripts/publish.js"
     },

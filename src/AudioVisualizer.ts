@@ -94,8 +94,7 @@ const MAX_FRAMES_PER_SECOND: number = 60;
 
 const MILLISECONDS_PER_SECOND: number = 1000;
 
-const MIN_THROTTLE_TIME: number =
-    MILLISECONDS_PER_SECOND / MAX_FRAMES_PER_SECOND;
+const MIN_THROTTLE_TIME: number = MILLISECONDS_PER_SECOND / MAX_FRAMES_PER_SECOND;
 
 const DEFAULT_FFT_SIZE: FftSize = 2048;
 
@@ -140,6 +139,11 @@ export class AudioVisualizer {
      * The id of the last animation request
      */
     protected _lastAnimationRequestId?: number;
+
+    /**
+     * The fps for the animation
+     */
+    protected _fps?: number;
 
     /**
      * The throttle time to use when controlling fps
@@ -207,8 +211,7 @@ export class AudioVisualizer {
      */
     constructor(config: AudioVisualizerConfig = {}) {
         //Get analyser from config or create new one
-        this.analyser =
-            config.analyser ?? new window.AudioContext().createAnalyser();
+        this.analyser = config.analyser ?? new window.AudioContext().createAnalyser();
 
         //Get canvas element from config or create new one if necessary
         this._canvas = config.canvas ?? document.createElement("canvas");
@@ -229,6 +232,7 @@ export class AudioVisualizer {
 
         this._callbacks = {
             setUpForeground: {},
+            frameDrawn: {},
         };
 
         //Resize
@@ -248,10 +252,8 @@ export class AudioVisualizer {
         const maxHeight = parent.clientHeight;
         const maxWidth = parent.clientWidth;
 
-        let heightToWidthRatio =
-            this.aspectRatio.width / this.aspectRatio.height;
-        let widthToHeightRatio =
-            this.aspectRatio.height / this.aspectRatio.width;
+        let heightToWidthRatio = this.aspectRatio.width / this.aspectRatio.height;
+        let widthToHeightRatio = this.aspectRatio.height / this.aspectRatio.width;
 
         //Check width
         let newWidth;
@@ -362,9 +364,7 @@ export class AudioVisualizer {
 
             //If elapsed time is less than the set throttle time, skip drawing this frame
             if (elapsed <= this._throttleTime) {
-                this._lastAnimationRequestId = requestAnimationFrame(
-                    this._animate
-                );
+                this._lastAnimationRequestId = requestAnimationFrame(this._animate);
                 return;
             }
 
@@ -372,6 +372,7 @@ export class AudioVisualizer {
         }
 
         this._draw();
+        this._trigger("frameDrawn");
         this._clearCanvasStyle();
         this._lastAnimationRequestId = requestAnimationFrame(this._animate);
     };
@@ -602,6 +603,7 @@ export class AudioVisualizer {
             fps = MAX_FRAMES_PER_SECOND;
         }
 
+        this._fps = fps;
         this._throttleTime = MILLISECONDS_PER_SECOND / fps;
     }
 

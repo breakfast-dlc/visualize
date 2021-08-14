@@ -1,13 +1,30 @@
-const util = require("util");
-const exec = util.promisify(require("child_process").exec);
+const { spawn } = require("child_process");
+
+const spawnAndLogOutPutToConsole = (command, args, message = null) => {
+    console.log(message ?? `${command} ${args.join(" ")}`);
+    const options = {
+        shell: true,
+    };
+    return new Promise((resolve) => {
+        const process = spawn(`${command}`, args, options);
+        process.stdout.on("data", (data) => console.log(data.toString()));
+        process.stderr.on("data", (data) => console.log(data.toString()));
+        process.on("exit", (code) => {
+            resolve();
+        });
+    });
+};
 
 /**
  * Runs webpack build process
  */
 const build = async () => {
-    console.log("Running webpack production build");
     try {
-        await exec("npx webpack --config webpack.prod.js");
+        await spawnAndLogOutPutToConsole(
+            "webpack",
+            ["--config", "webpack.prod.js"],
+            "Running webpack production build"
+        );
     } catch (e) {
         console.log(e);
     }
@@ -17,9 +34,12 @@ const build = async () => {
  * Publishes build to npm
  */
 const publish = async () => {
-    console.log("Publishing to npm");
     try {
-        await exec("npm publish --access public");
+        await spawnAndLogOutPutToConsole(
+            "npm",
+            ["publish", "--access", "public"],
+            "Publishing to npm"
+        );
     } catch (e) {
         console.log(e);
     }
@@ -28,4 +48,5 @@ const publish = async () => {
 module.exports = {
     build,
     publish,
+    spawnAndLogOutPutToConsole,
 };
