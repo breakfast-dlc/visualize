@@ -41,8 +41,7 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
             return;
         }
 
-        const numBars =
-            this.columnCount ?? FrequencyGraphBlocks._DEFAULT_COLUMN_COUNT;
+        const numBars = this.columnCount ?? FrequencyGraphBlocks._DEFAULT_COLUMN_COUNT;
         const canvasWidth = this.canvas.width;
         const canvasHeight = this.canvas.height;
         let gapSize = this.gap;
@@ -63,9 +62,8 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
         const barColor = this.color ?? canvasStyle.getPropertyValue("color");
 
         for (let averageValue of this._getFrequencyAverages()) {
-            let heightProportion =
-                this._getFrequencyDecibelValueProportion(averageValue);
-            let numRows = this.columnCount ?? DEFAULT_ROW_COUNT;
+            let heightProportion = this._getFrequencyDecibelValueProportion(averageValue);
+            let numRows = this.rowCount ?? DEFAULT_ROW_COUNT;
             let blockHeight = (canvasHeight - numRows * gapSize) / numRows;
 
             let heightRemaining =
@@ -78,11 +76,7 @@ export class FrequencyGraphBlocks extends FrequencyGraph {
                     let blockGroupSize = numRows / barColor.length;
                     let targetColorIndex = 0;
                     for (let j = barColor.length - 1; j >= 0; j--) {
-                        if (
-                            y >
-                            j * blockGroupSize * (blockHeight + gapSize) -
-                                gapSize
-                        ) {
+                        if (y > j * blockGroupSize * (blockHeight + gapSize) - gapSize) {
                             targetColorIndex = j;
                             break;
                         }

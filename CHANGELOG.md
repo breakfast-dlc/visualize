@@ -1,3 +1,8 @@
+## 0.2.4 (September 12, 2021)
+
+-   Added tests
+-   Bug fix: FrequencyGraphBlocks rowCount now works properly
+
 ## 0.2.3 (July 29, 2021)
 
 -   Animation fps updates for smoother animations
